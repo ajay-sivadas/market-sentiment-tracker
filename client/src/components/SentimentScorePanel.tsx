@@ -83,16 +83,16 @@ export default function SentimentScorePanel({ data, isLoading }: SentimentScoreP
           ></div>
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Bearish</span>
+          <span>Low IV</span>
           <span>Neutral</span>
-          <span>Bullish</span>
+          <span>High IV</span>
         </div>
       </div>
       
       {/* Market Status */}
       <div className="space-y-4">
         <div className="flex justify-between items-center pb-2 border-b border-background">
-          <span className="text-sm">Market Status</span>
+          <span className="text-sm">IV Score</span>
           <span className={`font-medium px-2 py-1 rounded ${getStatusBgColor(marketStatus)} ${getStatusColor(marketStatus)} text-sm`}>
             {marketStatus}
           </span>

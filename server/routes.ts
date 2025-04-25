@@ -66,6 +66,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ error: "Failed to fetch market factors" });
     }
   });
+  
+  // Get upcoming events
+  app.get(`${apiPrefix}/upcoming-events`, async (req, res) => {
+    try {
+      const upcomingEvents = await storage.getUpcomingEvents();
+      return res.json(upcomingEvents);
+    } catch (error) {
+      console.error("Error fetching upcoming events:", error);
+      return res.status(500).json({ error: "Failed to fetch upcoming events" });
+    }
+  });
 
   // Update market data (this would typically be called by a scheduled job)
   app.post(`${apiPrefix}/update-market-data`, async (req, res) => {

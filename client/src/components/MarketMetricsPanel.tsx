@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { MarketMetricsData, SectorPerformance } from "@/types";
+import { MarketMetricsData, SectorPerformance, IndianMarketIndex } from "@/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface MarketMetricsPanelProps {
   data?: MarketMetricsData;
@@ -12,6 +13,7 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
       <div className="bg-white rounded-lg shadow-sm md:col-span-1">
         <div className="p-4 border-b border-background">
           <h3 className="text-lg font-medium">Market Metrics</h3>
+          <Skeleton className="h-8 w-48 mt-2" />
         </div>
         <div className="p-4">
           {Array(5).fill(0).map((_, index) => (
@@ -39,7 +41,7 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
     );
   }
 
-  const { indices, sectorPerformance } = data;
+  const { indices, indianIndices, sectorPerformance, niftyPCR } = data;
   
   // Helper function to get color based on percentage change
   const getChangeColor = (change: number) => {
@@ -73,27 +75,79 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
     <div className="bg-white rounded-lg shadow-sm md:col-span-1">
       <div className="p-4 border-b border-background">
         <h3 className="text-lg font-medium">Market Metrics</h3>
-      </div>
-      
-      <div className="p-4">
-        {/* Market Indices */}
-        {indices.map((index, i) => (
-          <div key={i} className="mb-4">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-medium">{index.name}</span>
-              <div className={`flex items-center ${getChangeColor(index.change)}`}>
-                <span className="font-mono">{index.value.toLocaleString()}</span>
-                <span className="ml-2 text-xs">{index.change > 0 ? '+' : ''}{index.change}%</span>
+        <Tabs defaultValue="indian" className="mt-2">
+          <TabsList className="grid w-48 grid-cols-2">
+            <TabsTrigger value="indian">Indian</TabsTrigger>
+            <TabsTrigger value="global">Global</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="indian" className="pt-4">
+            {/* Indian Market Indices */}
+            {indianIndices.map((index, i) => (
+              <div key={i} className="mb-4">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-medium">{index.name}</span>
+                  <div className={`flex items-center ${getChangeColor(index.change)}`}>
+                    <span className="font-mono">{index.value.toLocaleString()}</span>
+                    <span className="ml-2 text-xs">{index.change > 0 ? '+' : ''}{index.change}%</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-background rounded-full">
+                  <div 
+                    className={`h-full ${getBarColor(index.change)} rounded-full`} 
+                    style={{ width: `${getBarWidth(index.change)}%` }}
+                  ></div>
+                </div>
               </div>
-            </div>
-            <div className="h-2 bg-background rounded-full">
-              <div 
-                className={`h-full ${getBarColor(index.change)} rounded-full`} 
-                style={{ width: `${getBarWidth(index.change)}%` }}
-              ></div>
-            </div>
-          </div>
-        ))}
+            ))}
+            
+            {/* Nifty PCR */}
+            {niftyPCR && (
+              <div className="mt-6 p-3 border border-background rounded-lg">
+                <h4 className="text-sm font-medium mb-2">Live Nifty PCR</h4>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm">Put-Call Ratio</span>
+                  <div className={`flex items-center ${getChangeColor(niftyPCR.change)}`}>
+                    <span className="font-mono font-medium">{niftyPCR.value.toFixed(2)}</span>
+                    <span className="ml-2 text-xs">{niftyPCR.change > 0 ? '+' : ''}{niftyPCR.change}</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between text-xs text-muted-foreground mt-4">
+                  <div>
+                    <span className="block">Puts Volume</span>
+                    <span className="font-mono">{niftyPCR.putVolume.toLocaleString()}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="block">Calls Volume</span>
+                    <span className="font-mono">{niftyPCR.callVolume.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="global" className="pt-4">
+            {/* Global Market Indices */}
+            {indices.map((index, i) => (
+              <div key={i} className="mb-4">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-medium">{index.name}</span>
+                  <div className={`flex items-center ${getChangeColor(index.change)}`}>
+                    <span className="font-mono">{index.value.toLocaleString()}</span>
+                    <span className="ml-2 text-xs">{index.change > 0 ? '+' : ''}{index.change}%</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-background rounded-full">
+                  <div 
+                    className={`h-full ${getBarColor(index.change)} rounded-full`} 
+                    style={{ width: `${getBarWidth(index.change)}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+        </Tabs>
       </div>
       
       <div className="p-4 border-t border-background">

@@ -1,18 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { Image, FileText, Download } from "lucide-react";
+import { Image, FileText, Download, BarChart2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HistoricalSentimentData, TimeFrame, KeyEvent } from "@/types";
+import { HistoricalSentimentData, TimeFrame, KeyEvent, SentimentHistoryPoint } from "@/types";
 import { 
   ResponsiveContainer, 
   AreaChart, 
   Area, 
+  LineChart,
+  Line,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip,
-  ReferenceDot
+  ReferenceDot,
+  Legend
 } from "recharts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SentimentChartPanelProps {
   data?: HistoricalSentimentData;
@@ -26,6 +30,45 @@ export default function SentimentChartPanel({
   timeFrame 
 }: SentimentChartPanelProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+  const [liveData, setLiveData] = useState<SentimentHistoryPoint[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<string>("");
+  
+  // Simulate live data updates
+  useEffect(() => {
+    if (!data || !data.sentimentHistory || data.sentimentHistory.length === 0) return;
+    
+    // Initialize with the last 20 points from historical data
+    const initialData = [...data.sentimentHistory].slice(-20);
+    setLiveData(initialData);
+    
+    // Update live data every few seconds
+    const interval = setInterval(() => {
+      const lastPoint = liveData[liveData.length - 1];
+      if (!lastPoint) return;
+      
+      const lastScore = lastPoint.score;
+      
+      // Generate a new point with small random variation
+      const randomChange = (Math.random() - 0.5) * 2; // Between -1 and 1
+      const newScore = Math.max(0, Math.min(100, lastScore + randomChange));
+      
+      const newPoint: SentimentHistoryPoint = {
+        timestamp: new Date().toISOString(),
+        score: newScore
+      };
+      
+      // Add new point and remove oldest if more than 60 points
+      const newData = [...liveData, newPoint];
+      if (newData.length > 60) {
+        newData.shift();
+      }
+      
+      setLiveData(newData);
+      setLastUpdate(new Date().toLocaleTimeString());
+    }, 3000); // Update every 3 seconds
+    
+    return () => clearInterval(interval);
+  }, [data, liveData.length]);
 
   if (isLoading || !data) {
     return (
@@ -96,63 +139,114 @@ export default function SentimentChartPanel({
         </div>
       </div>
       
-      {/* Chart */}
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={sentimentHistory}
-            margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-            onMouseMove={(e) => {
-              if (e.activeTooltipIndex !== undefined) {
-                setHoveredPoint(e.activeTooltipIndex);
-              }
-            }}
-            onMouseLeave={() => setHoveredPoint(null)}
-          >
-            <defs>
-              <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
-            <XAxis 
-              dataKey="timestamp" 
-              tick={{ fontSize: 12, fill: '#757575' }}
-              tickFormatter={formatXAxis}
-              minTickGap={30}
-            />
-            <YAxis 
-              domain={yDomain} 
-              tick={{ fontSize: 12, fill: '#757575' }}
-            />
-            <Tooltip
-              formatter={(value: number) => [`${value.toFixed(1)}`, 'Sentiment']}
-              labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy HH:mm')}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="score" 
-              stroke="#1E88E5" 
-              fillOpacity={1} 
-              fill="url(#colorScore)" 
-            />
-            
-            {/* Event markers */}
-            {keyEvents.map((event, index) => (
-              <ReferenceDot
-                key={index}
-                x={event.timestamp}
-                y={sentimentHistory.find(item => item.timestamp === event.timestamp)?.score || 50}
-                r={4}
-                fill={getEventColor(event.impact)}
-                stroke="white"
-                strokeWidth={1}
+      {/* Chart Tabs */}
+      <Tabs defaultValue="historical" className="mb-4">
+        <TabsList className="grid w-48 grid-cols-2">
+          <TabsTrigger value="historical">Historical</TabsTrigger>
+          <TabsTrigger value="live">Live</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="historical" className="chart-container mt-2">
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart
+              data={sentimentHistory}
+              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+              onMouseMove={(e) => {
+                if (e.activeTooltipIndex !== undefined) {
+                  setHoveredPoint(e.activeTooltipIndex);
+                }
+              }}
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              <defs>
+                <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+              <XAxis 
+                dataKey="timestamp" 
+                tick={{ fontSize: 12, fill: '#757575' }}
+                tickFormatter={formatXAxis}
+                minTickGap={30}
               />
-            ))}
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+              <YAxis 
+                domain={yDomain} 
+                tick={{ fontSize: 12, fill: '#757575' }}
+              />
+              <Tooltip
+                formatter={(value: number) => [`${value.toFixed(1)}`, 'Sentiment']}
+                labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy HH:mm')}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="score" 
+                stroke="#1E88E5" 
+                fillOpacity={1} 
+                fill="url(#colorScore)" 
+              />
+              
+              {/* Event markers */}
+              {keyEvents.map((event, index) => (
+                <ReferenceDot
+                  key={index}
+                  x={event.timestamp}
+                  y={sentimentHistory.find(item => item.timestamp === event.timestamp)?.score || 50}
+                  r={4}
+                  fill={getEventColor(event.impact)}
+                  stroke="white"
+                  strokeWidth={1}
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        </TabsContent>
+        
+        <TabsContent value="live" className="relative mt-2">
+          <div className="absolute top-0 right-0 text-xs text-muted-foreground p-2">
+            {lastUpdate && (
+              <div className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                <span>Last update: {lastUpdate}</span>
+              </div>
+            )}
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={liveData}
+              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+              <XAxis 
+                dataKey="timestamp" 
+                tick={{ fontSize: 12, fill: '#757575' }}
+                tickFormatter={(timestamp) => format(new Date(timestamp), 'HH:mm:ss')}
+                minTickGap={30}
+              />
+              <YAxis 
+                domain={[
+                  liveData.length > 0 ? Math.max(0, Math.min(...liveData.map(item => item.score)) - 5) : 0,
+                  liveData.length > 0 ? Math.min(100, Math.max(...liveData.map(item => item.score)) + 5) : 100
+                ]} 
+                tick={{ fontSize: 12, fill: '#757575' }}
+              />
+              <Tooltip
+                formatter={(value: number) => [`${value.toFixed(1)}`, 'IV Score']}
+                labelFormatter={(label) => format(new Date(label), 'HH:mm:ss')}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="score" 
+                stroke="#1E88E5" 
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </TabsContent>
+      </Tabs>
       
       {/* Key Events */}
       <div className="mt-4">
