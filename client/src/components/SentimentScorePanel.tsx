@@ -1,6 +1,7 @@
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SentimentData } from "@/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SentimentScorePanelProps {
   data?: SentimentData;

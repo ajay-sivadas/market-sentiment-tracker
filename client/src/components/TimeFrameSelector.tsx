@@ -14,7 +14,7 @@ export default function TimeFrameSelector({
   return (
     <div className="mb-6 flex items-center justify-between">
       <h2 className="text-xl font-semibold">Market Sentiment Dashboard</h2>
-      <div className="bg-white rounded-lg shadow-sm flex p-1">
+      <div className="bg-card rounded-lg shadow-sm flex p-1">
         {timeFrames.map((frame) => (
           <button
             key={frame}
