@@ -38,35 +38,35 @@
   }
   
   .dark {
-    --background: 225 6% 13%;  /* #1E2130 */
-    --foreground: 0 0% 96.1%;
+    --background: 0 0% 7%;  /* #121212 */
+    --foreground: 0 0% 88%;  /* #E0E0E0 */
     
-    --card: 225 6% 16%;  /* #24273C */
-    --card-foreground: 0 0% 96.1%;
+    --card: 240 19% 15%;  /* #1E1E2F */
+    --card-foreground: 0 0% 88%;  /* #E0E0E0 */
     
-    --popover: 225 6% 16%;
-    --popover-foreground: 0 0% 96.1%;
+    --popover: 240 19% 15%;  /* #1E1E2F */
+    --popover-foreground: 0 0% 88%;  /* #E0E0E0 */
     
-    --primary: 207 84% 52%;  /* #1E88E5 */
+    --primary: 197 100% 50%;  /* #00C2FF */
     --primary-foreground: 0 0% 100%;
     
     --secondary: 340 100% 63%;  /* #FF4081 */
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 225 6% 25%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 18%;  /* #2D2D2D */
+    --muted-foreground: 0 0% 63%;  /* #A0A0A0 */
     
-    --accent: 225 6% 25%;
-    --accent-foreground: 0 0% 96.1%;
+    --accent: 197 100% 50%;  /* #00C2FF */
+    --accent-foreground: 0 0% 88%;  /* #E0E0E0 */
     
-    --destructive: 0 70% 50%;  /* #D32F2F */
+    --destructive: 0 100% 63%;  /* #FF4F4F */
     --destructive-foreground: 0 0% 100%;
     
-    --positive: 142 100% 39%;  /* #00C853 */
+    --positive: 157 100% 50%;  /* #00FF95 */
     
-    --border: 225 6% 25%;
-    --input: 225 6% 25%;
-    --ring: 207 84% 52%;
+    --border: 240 1% 18%;  /* #2C2C2E */
+    --input: 240 1% 18%;  /* #2C2C2E */
+    --ring: 197 100% 50%;  /* #00C2FF */
   }
   
   * {
@@ -107,7 +107,7 @@
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-track {
-  background: #2a2d3d;
+  background: #1A1A1A;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -116,7 +116,7 @@
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #4a4d5d;
+  background: #2C2C2E;
   border-radius: 3px;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #5a5d6d;
+  background: #3C3C3E;
 }
 
 .sentiment-score {
@@ -160,10 +160,23 @@
 }
 
 .dark .chart-grid {
-  stroke: #3a3d4d;
+  stroke: #2C2C2E;
   stroke-width: 1;
 }
 
 .dark .news-item:hover {
-  background-color: rgba(30, 136, 229, 0.15);
+  background-color: rgba(0, 194, 255, 0.15);
+}
+
+.dark .chart-line {
+  stroke: #00C2FF;
+  stroke-width: 2;
+}
+
+.dark .chart-area {
+  fill: rgba(0, 194, 255, 0.1);
+}
+
+.dark .chart-dot {
+  fill: #00C2FF;
 }
