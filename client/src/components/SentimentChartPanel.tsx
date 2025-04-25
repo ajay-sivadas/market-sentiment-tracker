@@ -168,7 +168,11 @@ export default function SentimentChartPanel({
                   <stop offset="95%" stopColor={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={document.documentElement.classList.contains('dark') ? "#2C2C2E" : "#E0E0E0"} />
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke={document.documentElement.classList.contains('dark') ? "#3C3C4E" : "#D0D0D0"} 
+                vertical={false}
+              />
               <XAxis 
                 dataKey="timestamp" 
                 tick={{ fontSize: 12, fill: '#757575' }}
@@ -252,7 +256,11 @@ export default function SentimentChartPanel({
               data={localLiveData}
               margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke={document.documentElement.classList.contains('dark') ? "#2C2C2E" : "#E0E0E0"} />
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke={document.documentElement.classList.contains('dark') ? "#3C3C4E" : "#D0D0D0"} 
+                vertical={false}
+              />
               <XAxis 
                 dataKey="timestamp" 
                 tick={{ fontSize: 12, fill: document.documentElement.classList.contains('dark') ? '#A0A0A0' : '#757575' }}
@@ -288,25 +296,38 @@ export default function SentimentChartPanel({
                   return [value, name];
                 }}
                 labelFormatter={(label) => format(new Date(label), 'HH:mm:ss')}
+                contentStyle={{
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1E1E2F' : '#fff',
+                  border: document.documentElement.classList.contains('dark') ? '1px solid #3C3C4E' : '1px solid #E0E0E0',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                }}
+                itemStyle={{ fontSize: '13px' }}
+                labelStyle={{ fontWeight: 'bold', marginBottom: '5px', fontSize: '12px' }}
               />
               <Line 
                 type="monotone" 
                 dataKey="score" 
                 stroke={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} 
-                strokeWidth={2}
+                strokeWidth={3}
                 dot={false}
-                activeDot={{ r: 4 }}
+                activeDot={{ r: 6, fill: document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5", stroke: "white", strokeWidth: 2 }}
                 yAxisId="left"
+                connectNulls={true}
+                animationDuration={300}
               />
               {showNiftyData && (
                 <Line 
                   type="monotone" 
                   dataKey="niftyValue" 
                   stroke={document.documentElement.classList.contains('dark') ? "#00FF95" : "#10b981"} 
-                  strokeWidth={2}
+                  strokeWidth={3}
                   dot={false}
-                  activeDot={{ r: 4 }}
+                  activeDot={{ r: 6, fill: document.documentElement.classList.contains('dark') ? "#00FF95" : "#10b981", stroke: "white", strokeWidth: 2 }}
                   yAxisId="right"
+                  connectNulls={true}
+                  animationDuration={300}
                 />
               )}
             </ComposedChart>
