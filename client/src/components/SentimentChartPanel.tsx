@@ -26,6 +26,8 @@ interface SentimentChartPanelProps {
   data?: HistoricalSentimentData;
   isLoading: boolean;
   timeFrame: TimeFrame;
+  liveData?: any[]; // For WebSocket real-time data
+  isConnected?: boolean; // WebSocket connection status
 }
 
 // Type for combined sentiment and Nifty data points
@@ -38,17 +40,17 @@ interface CombinedDataPoint {
 export default function SentimentChartPanel({ 
   data, 
   isLoading,
-  timeFrame 
+  timeFrame,
+  liveData: externalLiveData,
+  isConnected: wsConnected
 }: SentimentChartPanelProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
-  const [liveData, setLiveData] = useState<CombinedDataPoint[]>([]);
+  const [localLiveData, setLocalLiveData] = useState<CombinedDataPoint[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [showNiftyData, setShowNiftyData] = useState<boolean>(true);
   
-  // Setup WebSocket connection for real-time data
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
-  const { isConnected, liveData: wsLiveData, latestMessage } = useWebSocket(wsUrl);
+  // Use the connection status from props or default to false
+  const isConnected = wsConnected ?? false;
 
   // Process data from WebSocket
   useEffect(() => {
@@ -56,23 +58,21 @@ export default function SentimentChartPanel({
     
     // Initialize with the last 20 points from historical data
     // This will show initially before WebSocket data comes in
-    if (liveData.length === 0) {
+    if (localLiveData.length === 0) {
       const initialData = [...data.sentimentHistory].slice(-20).map(point => ({
         ...point,
         niftyValue: 22000 + (Math.random() - 0.5) * 200 // Initial value until WebSocket data arrives
       }));
       
-      setLiveData(initialData);
+      setLocalLiveData(initialData);
     }
     
     // Update with WebSocket data when available
-    if (wsLiveData.length > 0) {
-      setLiveData(wsLiveData);
-      if (wsLiveData.length > 0) {
-        setLastUpdate(new Date().toLocaleTimeString());
-      }
+    if (externalLiveData && externalLiveData.length > 0) {
+      setLocalLiveData(externalLiveData);
+      setLastUpdate(new Date().toLocaleTimeString());
     }
-  }, [data, wsLiveData]);
+  }, [data, externalLiveData, localLiveData.length]);
 
   if (isLoading || !data) {
     return (
@@ -249,7 +249,7 @@ export default function SentimentChartPanel({
           
           <ResponsiveContainer width="100%" height={300}>
             <ComposedChart
-              data={liveData}
+              data={localLiveData}
               margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={document.documentElement.classList.contains('dark') ? "#2C2C2E" : "#E0E0E0"} />
@@ -262,8 +262,8 @@ export default function SentimentChartPanel({
               <YAxis 
                 yAxisId="left"
                 domain={[
-                  liveData.length > 0 ? Math.max(0, Math.min(...liveData.map(item => item.score)) - 5) : 0,
-                  liveData.length > 0 ? Math.min(100, Math.max(...liveData.map(item => item.score)) + 5) : 100
+                  localLiveData.length > 0 ? Math.max(0, Math.min(...localLiveData.map((item: CombinedDataPoint) => item.score)) - 5) : 0,
+                  localLiveData.length > 0 ? Math.min(100, Math.max(...localLiveData.map((item: CombinedDataPoint) => item.score)) + 5) : 100
                 ]} 
                 tick={{ fontSize: 12, fill: '#757575' }}
                 orientation="left"
@@ -273,11 +273,11 @@ export default function SentimentChartPanel({
                 <YAxis 
                   yAxisId="right"
                   domain={[
-                    liveData.length > 0 && liveData[0].niftyValue 
-                      ? Math.min(...liveData.map(item => item.niftyValue || 0)) - 100 
+                    localLiveData.length > 0 && localLiveData[0].niftyValue 
+                      ? Math.min(...localLiveData.map((item: CombinedDataPoint) => item.niftyValue || 0)) - 100 
                       : 21900,
-                    liveData.length > 0 && liveData[0].niftyValue 
-                      ? Math.max(...liveData.map(item => item.niftyValue || 0)) + 100 
+                    localLiveData.length > 0 && localLiveData[0].niftyValue 
+                      ? Math.max(...localLiveData.map((item: CombinedDataPoint) => item.niftyValue || 0)) + 100 
                       : 22100
                   ]} 
                   tick={{ fontSize: 12, fill: '#757575' }}
