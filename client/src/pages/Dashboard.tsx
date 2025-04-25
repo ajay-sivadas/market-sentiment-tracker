@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useWebSocket } from "@/hooks/use-websocket";
 import Header from "@/components/Header";
 import TimeFrameSelector from "@/components/TimeFrameSelector";
 import SentimentScorePanel from "@/components/SentimentScorePanel";
@@ -9,33 +10,58 @@ import MarketMetricsPanel from "@/components/MarketMetricsPanel";
 import MarketFactorsPanel from "@/components/MarketFactorsPanel";
 import UpcomingEventsPanel from "@/components/UpcomingEventsPanel";
 import Footer from "@/components/Footer";
-import { TimeFrame } from "@/types";
+import { 
+  TimeFrame, 
+  SentimentData, 
+  HistoricalSentimentData, 
+  NewsItemData, 
+  MarketMetricsData, 
+  MarketFactorsData 
+} from "@/types";
 
 export default function Dashboard() {
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("1M");
+  
+  // Setup WebSocket connection for real-time data
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const { isConnected, latestMessage, liveData } = useWebSocket(wsUrl);
+  
+  // Debug WebSocket connection
+  useEffect(() => {
+    if (isConnected) {
+      console.log("WebSocket connected successfully");
+    }
+    if (latestMessage) {
+      console.log("Latest WebSocket message:", latestMessage);
+    }
+    if (liveData.length > 0) {
+      console.log("Live data points:", liveData.length);
+    }
+  }, [isConnected, latestMessage, liveData]);
 
   // Fetch current sentiment data
-  const { data: currentSentiment, isLoading: loadingSentiment } = useQuery({
+  const { data: currentSentiment, isLoading: loadingSentiment } = useQuery<SentimentData>({
     queryKey: ["/api/sentiment/current"],
   });
 
   // Fetch historical sentiment data based on selected timeframe
-  const { data: historicalSentiment, isLoading: loadingHistorical } = useQuery({
+  const { data: historicalSentiment, isLoading: loadingHistorical } = useQuery<HistoricalSentimentData>({
     queryKey: ["/api/sentiment/historical", timeFrame],
   });
 
   // Fetch news data
-  const { data: newsData, isLoading: loadingNews } = useQuery({
+  const { data: newsData, isLoading: loadingNews } = useQuery<NewsItemData[]>({
     queryKey: ["/api/news", timeFrame],
   });
 
   // Fetch market metrics
-  const { data: marketMetrics, isLoading: loadingMetrics } = useQuery({
+  const { data: marketMetrics, isLoading: loadingMetrics } = useQuery<MarketMetricsData>({
     queryKey: ["/api/market-metrics"],
   });
 
   // Fetch market factors
-  const { data: marketFactors, isLoading: loadingFactors } = useQuery({
+  const { data: marketFactors, isLoading: loadingFactors } = useQuery<MarketFactorsData>({
     queryKey: ["/api/market-factors"],
   });
 
@@ -65,6 +91,8 @@ export default function Dashboard() {
             data={historicalSentiment} 
             isLoading={loadingHistorical} 
             timeFrame={timeFrame}
+            liveData={liveData}
+            isConnected={isConnected}
           />
         </div>
         
