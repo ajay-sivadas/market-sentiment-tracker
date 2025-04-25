@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Settings, Bell } from "lucide-react";
 import { format } from "date-fns";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 interface HeaderProps {
   lastUpdated?: string;
@@ -15,7 +16,7 @@ export default function Header({ lastUpdated }: HeaderProps) {
     : format(new Date(), "MMM d, yyyy HH:mm:ss");
 
   return (
-    <header className="bg-white shadow">
+    <header className="bg-background border-b border-border shadow">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center">
           <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
@@ -28,6 +29,7 @@ export default function Header({ lastUpdated }: HeaderProps) {
             <span className="text-sm text-muted-foreground">Last Updated:</span>
             <span className="ml-1 text-sm font-mono">{formattedDate}</span>
           </div>
+          <ThemeSwitcher />
           <button 
             className="p-2 rounded-full hover:bg-background focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={() => setShowSettings(!showSettings)}
