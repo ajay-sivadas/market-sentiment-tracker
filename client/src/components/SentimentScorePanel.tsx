@@ -146,9 +146,7 @@ export default function SentimentScorePanel({ data, isLoading, marketMetrics, lo
                     </div>
                   </div>
                   
-                  {/* Removed explanatory text as requested */}
-                  
-                  <div className="flex justify-between text-xs mt-3">
+                  <div className="flex justify-between text-xs mt-4">
                     <div>
                       <span className="block text-muted-foreground">Puts Volume</span>
                       <span className="font-mono">{marketMetrics.niftyPCR.putVolume.toLocaleString()}</span>
@@ -169,7 +167,7 @@ export default function SentimentScorePanel({ data, isLoading, marketMetrics, lo
                     if (index.name.toLowerCase().includes('vix')) {
                       return (
                         <div key={index.name} className="space-y-2">
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between items-center mb-2">
                             <span className="text-sm">{index.name}</span>
                             <div className={`flex items-center ${getChangeColor(index.change)}`}>
                               <span className="font-mono">{index.value.toLocaleString()}</span>
@@ -177,7 +175,17 @@ export default function SentimentScorePanel({ data, isLoading, marketMetrics, lo
                             </div>
                           </div>
                           
-                          {/* Removed explanatory text as requested */}
+                          {/* Bar visualization for VIX - general range indicator */}
+                          <div className="h-3 bg-muted rounded-full overflow-hidden mb-2">
+                            <div 
+                              className={`h-full ${index.value > 20 ? 'bg-destructive/70' : index.value < 15 ? 'bg-primary/70' : 'bg-amber-500/70'}`}
+                              style={{ width: `${Math.min(Math.max(index.value * 2.5, 10), 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>Lower Volatility</span>
+                            <span>Higher Volatility</span>
+                          </div>
                         </div>
                       );
                     }

@@ -184,15 +184,28 @@ export default function SentimentChartPanel({
                 tick={{ fontSize: 12, fill: '#757575' }}
               />
               <Tooltip
-                formatter={(value: number) => [`${value.toFixed(1)}`, 'Sentiment']}
+                formatter={(value: number) => [`${value.toFixed(1)}`, 'IV Score']}
                 labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy HH:mm')}
+                contentStyle={{
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1E1E2F' : '#fff',
+                  border: document.documentElement.classList.contains('dark') ? '1px solid #3C3C4E' : '1px solid #E0E0E0',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                }}
+                itemStyle={{ fontSize: '13px' }}
+                labelStyle={{ fontWeight: 'bold', marginBottom: '5px', fontSize: '12px' }}
               />
               <Area 
                 type="monotone" 
                 dataKey="score" 
                 stroke={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} 
                 fillOpacity={1} 
-                fill="url(#colorScore)" 
+                fill="url(#colorScore)"
+                strokeWidth={3}
+                activeDot={{ r: 6, fill: document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5", stroke: "white", strokeWidth: 2 }}
+                connectNulls={true}
+                animationDuration={300}
               />
               
               {/* Event markers */}
@@ -201,10 +214,11 @@ export default function SentimentChartPanel({
                   key={index}
                   x={event.timestamp}
                   y={sentimentHistory.find(item => item.timestamp === event.timestamp)?.score || 50}
-                  r={4}
+                  r={5}
                   fill={getEventColor(event.impact)}
                   stroke="white"
-                  strokeWidth={1}
+                  strokeWidth={2}
+                  ifOverflow="extendDomain"
                 />
               ))}
             </AreaChart>
