@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { Image, FileText, Download, BarChart2 } from "lucide-react";
+import { Image, FileText, Download, BarChart2, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HistoricalSentimentData, TimeFrame, KeyEvent, SentimentHistoryPoint } from "@/types";
 import { 
@@ -14,14 +14,24 @@ import {
   CartesianGrid, 
   Tooltip,
   ReferenceDot,
-  Legend
+  Legend,
+  ComposedChart,
+  Bar
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 interface SentimentChartPanelProps {
   data?: HistoricalSentimentData;
   isLoading: boolean;
   timeFrame: TimeFrame;
+}
+
+// Type for combined sentiment and Nifty data points
+interface CombinedDataPoint {
+  timestamp: string;
+  score: number;
+  niftyValue?: number;
 }
 
 export default function SentimentChartPanel({ 
@@ -30,15 +40,27 @@ export default function SentimentChartPanel({
   timeFrame 
 }: SentimentChartPanelProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
-  const [liveData, setLiveData] = useState<SentimentHistoryPoint[]>([]);
+  const [liveData, setLiveData] = useState<CombinedDataPoint[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>("");
+  const [showNiftyData, setShowNiftyData] = useState<boolean>(true);
   
+  // Generate mock Nifty data
+  const generateNiftyValue = (baseValue: number = 22000) => {
+    // Random fluctuation between -100 and +100
+    const randomFluctuation = (Math.random() - 0.5) * 200;
+    return baseValue + randomFluctuation;
+  };
+
   // Simulate live data updates
   useEffect(() => {
     if (!data || !data.sentimentHistory || data.sentimentHistory.length === 0) return;
     
-    // Initialize with the last 20 points from historical data
-    const initialData = [...data.sentimentHistory].slice(-20);
+    // Initialize with the last 20 points from historical data and add Nifty values
+    const initialData = [...data.sentimentHistory].slice(-20).map(point => ({
+      ...point,
+      niftyValue: generateNiftyValue()
+    }));
+    
     setLiveData(initialData);
     
     // Update live data every few seconds
@@ -47,14 +69,20 @@ export default function SentimentChartPanel({
       if (!lastPoint) return;
       
       const lastScore = lastPoint.score;
+      const lastNiftyValue = lastPoint.niftyValue || 22000;
       
       // Generate a new point with small random variation
-      const randomChange = (Math.random() - 0.5) * 2; // Between -1 and 1
-      const newScore = Math.max(0, Math.min(100, lastScore + randomChange));
+      const randomScoreChange = (Math.random() - 0.5) * 2; // Between -1 and 1
+      const newScore = Math.max(0, Math.min(100, lastScore + randomScoreChange));
       
-      const newPoint: SentimentHistoryPoint = {
+      // Generate a slight variation for Nifty based on last value
+      const randomNiftyChange = (Math.random() - 0.5) * 30; // Small change
+      const newNiftyValue = lastNiftyValue + randomNiftyChange;
+      
+      const newPoint: CombinedDataPoint = {
         timestamp: new Date().toISOString(),
-        score: newScore
+        score: newScore,
+        niftyValue: newNiftyValue
       };
       
       // Add new point and remove oldest if more than 60 points
@@ -72,7 +100,7 @@ export default function SentimentChartPanel({
 
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 md:col-span-2">
+      <div className="bg-background rounded-lg shadow-sm p-6 md:col-span-2 border border-border">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Sentiment Trend</h3>
           <div className="flex space-x-2">
@@ -123,7 +151,7 @@ export default function SentimentChartPanel({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 md:col-span-2">
+    <div className="bg-background rounded-lg shadow-sm p-6 md:col-span-2 border border-border">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Sentiment Trend</h3>
         <div className="flex space-x-2">
@@ -204,7 +232,16 @@ export default function SentimentChartPanel({
         </TabsContent>
         
         <TabsContent value="live" className="relative mt-2">
-          <div className="absolute top-0 right-0 text-xs text-muted-foreground p-2">
+          <div className="absolute top-0 right-0 z-10 text-xs text-muted-foreground p-2 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <button 
+                className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 ${showNiftyData ? 'bg-primary-foreground' : 'bg-transparent'}`}
+                onClick={() => setShowNiftyData(!showNiftyData)}
+              >
+                <TrendingUp className="h-3 w-3" />
+                <span>Nifty</span>
+              </button>
+            </div>
             {lastUpdate && (
               <div className="flex items-center">
                 <span className="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
@@ -212,8 +249,22 @@ export default function SentimentChartPanel({
               </div>
             )}
           </div>
+          
+          <div className="flex gap-2 mt-1 mb-3">
+            <Badge variant="outline" className="bg-primary/10 hover:bg-primary/20">
+              <span className="w-2 h-2 rounded-full bg-primary mr-1"></span>
+              IV Score
+            </Badge>
+            {showNiftyData && (
+              <Badge variant="outline" className="bg-emerald-500/10 hover:bg-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>
+                Nifty50
+              </Badge>
+            )}
+          </div>
+          
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
+            <ComposedChart
               data={liveData}
               margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
             >
@@ -225,14 +276,37 @@ export default function SentimentChartPanel({
                 minTickGap={30}
               />
               <YAxis 
+                yAxisId="left"
                 domain={[
                   liveData.length > 0 ? Math.max(0, Math.min(...liveData.map(item => item.score)) - 5) : 0,
                   liveData.length > 0 ? Math.min(100, Math.max(...liveData.map(item => item.score)) + 5) : 100
                 ]} 
                 tick={{ fontSize: 12, fill: '#757575' }}
+                orientation="left"
+                label={{ value: 'IV Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
               />
+              {showNiftyData && (
+                <YAxis 
+                  yAxisId="right"
+                  domain={[
+                    liveData.length > 0 && liveData[0].niftyValue 
+                      ? Math.min(...liveData.map(item => item.niftyValue || 0)) - 100 
+                      : 21900,
+                    liveData.length > 0 && liveData[0].niftyValue 
+                      ? Math.max(...liveData.map(item => item.niftyValue || 0)) + 100 
+                      : 22100
+                  ]} 
+                  tick={{ fontSize: 12, fill: '#757575' }}
+                  orientation="right"
+                  label={{ value: 'Nifty50', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
+                />
+              )}
               <Tooltip
-                formatter={(value: number) => [`${value.toFixed(1)}`, 'IV Score']}
+                formatter={(value: number, name: string) => {
+                  if (name === 'score') return [`${value.toFixed(1)}`, 'IV Score'];
+                  if (name === 'niftyValue') return [`${value.toFixed(1)}`, 'Nifty50'];
+                  return [value, name];
+                }}
                 labelFormatter={(label) => format(new Date(label), 'HH:mm:ss')}
               />
               <Line 
@@ -242,30 +316,48 @@ export default function SentimentChartPanel({
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}
+                yAxisId="left"
               />
-            </LineChart>
+              {showNiftyData && (
+                <Line 
+                  type="monotone" 
+                  dataKey="niftyValue" 
+                  stroke="#10b981" 
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                  yAxisId="right"
+                />
+              )}
+            </ComposedChart>
           </ResponsiveContainer>
         </TabsContent>
       </Tabs>
       
-      {/* Key Events */}
-      <div className="mt-4">
-        <h4 className="text-sm font-medium mb-2">Key Events</h4>
-        <div className="flex flex-wrap gap-2">
+      {/* Key Events Section with improved styling */}
+      <div className="mt-6 border-t border-border pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium">Key Market Events</h4>
+          <Badge variant="outline" className="text-xs">
+            {keyEvents.length} events
+          </Badge>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {keyEvents.map((event, index) => (
             <div 
               key={index}
-              className={`inline-flex items-center px-2 py-1 rounded-full bg-opacity-10 text-xs`}
-              style={{
-                backgroundColor: `${getEventColor(event.impact)}10`,
-                color: getEventColor(event.impact)
-              }}
+              className="flex items-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
             >
-              <span 
-                className="w-2 h-2 rounded-full mr-1"
+              <div 
+                className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
                 style={{ backgroundColor: getEventColor(event.impact) }}
-              ></span>
-              {event.title}
+              ></div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{event.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {format(new Date(event.timestamp), 'MMM d, HH:mm')}
+                </p>
+              </div>
             </div>
           ))}
         </div>

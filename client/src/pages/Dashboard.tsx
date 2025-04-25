@@ -67,17 +67,19 @@ export default function Dashboard() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <NewsPanel 
-            data={newsData} 
-            isLoading={loadingNews} 
-          />
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <NewsPanel 
+              data={newsData} 
+              isLoading={loadingNews} 
+            />
+            
+            <UpcomingEventsPanel />
+          </div>
           
           <MarketMetricsPanel 
             data={marketMetrics} 
             isLoading={loadingMetrics} 
           />
-          
-          <UpcomingEventsPanel />
         </div>
         
         <MarketFactorsPanel 
