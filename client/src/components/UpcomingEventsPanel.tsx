@@ -6,14 +6,14 @@ import { UpcomingEvent } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 export default function UpcomingEventsPanel() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<UpcomingEvent[]>({
     queryKey: ['/api/upcoming-events'],
     refetchInterval: 60000, // Refetch every minute
   });
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+      <div className="bg-card rounded-lg shadow-sm p-6 mt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Upcoming Events</h3>
         </div>
@@ -40,7 +40,7 @@ export default function UpcomingEventsPanel() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+      <div className="bg-card rounded-lg shadow-sm p-6 mt-6">
         <h3 className="text-lg font-medium mb-4">Upcoming Events</h3>
         <div className="flex items-center justify-center p-8 text-destructive">
           <AlertTriangle className="mr-2" />
@@ -50,17 +50,17 @@ export default function UpcomingEventsPanel() {
     );
   }
 
-  const events: UpcomingEvent[] = data || [];
+  const events: UpcomingEvent[] = data ? data as UpcomingEvent[] : [];
 
   // Function to get impact badge color
   const getImpactColor = (impact: string) => {
     switch (impact) {
       case 'positive':
-        return 'bg-[#00C853] bg-opacity-10 text-[#00C853]';
+        return 'dark:bg-[#00FF95] dark:bg-opacity-10 dark:text-[#00FF95] bg-[#00C853] bg-opacity-10 text-[#00C853]';
       case 'negative':
-        return 'bg-destructive bg-opacity-10 text-destructive';
+        return 'dark:bg-[#FF4F4F] dark:bg-opacity-10 dark:text-[#FF4F4F] bg-destructive bg-opacity-10 text-destructive';
       default:
-        return 'bg-primary bg-opacity-10 text-primary';
+        return 'dark:bg-[#00C2FF] dark:bg-opacity-10 dark:text-[#00C2FF] bg-primary bg-opacity-10 text-primary';
     }
   };
 
@@ -75,16 +75,16 @@ export default function UpcomingEventsPanel() {
   const getImportanceClass = (importance: string) => {
     switch (importance) {
       case 'high':
-        return 'border-l-[3px] border-destructive';
+        return 'border-l-[3px] dark:border-[#FF4F4F] border-destructive';
       case 'medium':
-        return 'border-l-[3px] border-yellow-500';
+        return 'border-l-[3px] dark:border-amber-400 border-yellow-500';
       default:
-        return 'border-l-[3px] border-gray-300';
+        return 'border-l-[3px] dark:border-gray-600 border-gray-300';
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+    <div className="bg-card rounded-lg shadow-sm p-6 mt-6">
       <h3 className="text-lg font-medium mb-4">Upcoming Events</h3>
       
       {events.length === 0 ? (
