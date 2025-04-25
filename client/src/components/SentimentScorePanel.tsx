@@ -146,10 +146,7 @@ export default function SentimentScorePanel({ data, isLoading, marketMetrics, lo
                     </div>
                   </div>
                   
-                  <div className="text-xs p-2 bg-background rounded-md mb-2">
-                    <p>PCR values {">"}1 indicate bearish sentiment (more puts than calls)</p>
-                    <p>PCR values {"<"}1 indicate bullish sentiment (more calls than puts)</p>
-                  </div>
+                  {/* Removed explanatory text as requested */}
                   
                   <div className="flex justify-between text-xs mt-3">
                     <div>
@@ -180,11 +177,7 @@ export default function SentimentScorePanel({ data, isLoading, marketMetrics, lo
                             </div>
                           </div>
                           
-                          <div className="text-xs p-2 bg-background rounded-md">
-                            <p>VIX measures market's expectation of volatility.</p>
-                            <p>High VIX ({">"}20): More fear, higher volatility</p>
-                            <p>Low VIX ({"<"}15): Less fear, calmer markets</p>
-                          </div>
+                          {/* Removed explanatory text as requested */}
                         </div>
                       );
                     }

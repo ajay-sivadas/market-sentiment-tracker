@@ -262,8 +262,8 @@ export default function SentimentChartPanel({
               <YAxis 
                 yAxisId="left"
                 domain={[
-                  localLiveData.length > 0 ? Math.max(0, Math.min(...localLiveData.map((item: CombinedDataPoint) => item.score)) - 5) : 0,
-                  localLiveData.length > 0 ? Math.min(100, Math.max(...localLiveData.map((item: CombinedDataPoint) => item.score)) + 5) : 100
+                  60, // Fixed y-axis range for better readability
+                  75  // Setting a fixed range from 60-75 for the sentiment score
                 ]} 
                 tick={{ fontSize: 12, fill: '#757575' }}
                 orientation="left"
@@ -273,12 +273,8 @@ export default function SentimentChartPanel({
                 <YAxis 
                   yAxisId="right"
                   domain={[
-                    localLiveData.length > 0 && localLiveData[0].niftyValue 
-                      ? Math.min(...localLiveData.map((item: CombinedDataPoint) => item.niftyValue || 0)) - 100 
-                      : 21900,
-                    localLiveData.length > 0 && localLiveData[0].niftyValue 
-                      ? Math.max(...localLiveData.map((item: CombinedDataPoint) => item.niftyValue || 0)) + 100 
-                      : 22100
+                    21900, // Fixed Y-axis for Nifty with a stable range
+                    22100  // This will keep the chart more stable and readable
                   ]} 
                   tick={{ fontSize: 12, fill: '#757575' }}
                   orientation="right"

@@ -101,30 +101,7 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
               </div>
             ))}
             
-            {/* Nifty PCR */}
-            {niftyPCR && (
-              <div className="mt-6 p-3 border border-background rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Live Nifty PCR</h4>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm">Put-Call Ratio</span>
-                  <div className={`flex items-center ${getChangeColor(niftyPCR.change)}`}>
-                    <span className="font-mono font-medium">{niftyPCR.value.toFixed(2)}</span>
-                    <span className="ml-2 text-xs">{niftyPCR.change > 0 ? '+' : ''}{niftyPCR.change}</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between text-xs text-muted-foreground mt-4">
-                  <div>
-                    <span className="block">Puts Volume</span>
-                    <span className="font-mono">{niftyPCR.putVolume.toLocaleString()}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="block">Calls Volume</span>
-                    <span className="font-mono">{niftyPCR.callVolume.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Removed Nifty PCR as requested - now only shown in SentimentScorePanel */}
           </TabsContent>
           
           <TabsContent value="global" className="pt-4">
