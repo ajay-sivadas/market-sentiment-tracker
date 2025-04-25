@@ -190,6 +190,94 @@ async function seed() {
     const insertedSectors = await db.insert(schema.sectorPerformance).values(sectors).returning();
     console.log(`Seeded ${insertedSectors.length} sector performance data`);
 
+    // Seed Indian market indices
+    const indianIndices = [
+      {
+        name: "NIFTY 50",
+        value: 21845.50,
+        change: 0.9,
+        timestamp: new Date()
+      },
+      {
+        name: "SENSEX",
+        value: 71532.25,
+        change: 0.8,
+        timestamp: new Date()
+      },
+      {
+        name: "NIFTY BANK",
+        value: 46735.20,
+        change: 1.2,
+        timestamp: new Date()
+      },
+      {
+        name: "NIFTY IT",
+        value: 32567.80,
+        change: 1.5,
+        timestamp: new Date()
+      },
+      {
+        name: "INDIA VIX",
+        value: 14.85,
+        change: -3.2,
+        timestamp: new Date()
+      }
+    ];
+
+    const insertedIndianIndices = await db.insert(schema.indianMarketIndices).values(indianIndices).returning();
+    console.log(`Seeded ${insertedIndianIndices.length} Indian market indices`);
+
+    // Seed Nifty PCR data
+    const niftyPCRData = {
+      value: 1.25,
+      change: 0.15,
+      timestamp: new Date(),
+      putVolume: 4528000,
+      callVolume: 3622400
+    };
+
+    const insertedNiftyPCR = await db.insert(schema.niftyPCR).values(niftyPCRData).returning();
+    console.log(`Seeded Nifty PCR data`);
+
+    // Seed upcoming events
+    const upcomingEvents = [
+      {
+        title: "RBI Monetary Policy Meeting",
+        description: "Reserve Bank of India meeting to decide on interest rates policy",
+        eventDate: new Date(baseDate.getTime() + (3 * 24 * 60 * 60 * 1000)), // 3 days from now
+        importance: "high",
+        type: "policy",
+        impact: "neutral"
+      },
+      {
+        title: "India GDP Data Release",
+        description: "Quarterly GDP data for Indian economy",
+        eventDate: new Date(baseDate.getTime() + (5 * 24 * 60 * 60 * 1000)), // 5 days from now
+        importance: "high",
+        type: "economic",
+        impact: "positive"
+      },
+      {
+        title: "Infosys Quarterly Results",
+        description: "Q1 2023 earnings for Infosys",
+        eventDate: new Date(baseDate.getTime() + (7 * 24 * 60 * 60 * 1000)), // 7 days from now
+        importance: "medium",
+        type: "earnings",
+        impact: "positive"
+      },
+      {
+        title: "HDFC Bank Dividend Announcement",
+        description: "Expected declaration of quarterly dividend",
+        eventDate: new Date(baseDate.getTime() + (10 * 24 * 60 * 60 * 1000)), // 10 days from now
+        importance: "medium",
+        type: "earnings",
+        impact: "positive"
+      }
+    ];
+
+    const insertedUpcomingEvents = await db.insert(schema.upcomingEvents).values(upcomingEvents).returning();
+    console.log(`Seeded ${insertedUpcomingEvents.length} upcoming events`);
+
     // Seed market factors
     const factors = [
       {

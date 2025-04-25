@@ -73,9 +73,9 @@ export async function getNewsItems(timeFrame: TimeFrameType) {
   }));
 }
 
-// Get market metrics (indices and sector performance)
+// Get market metrics (both global and Indian indices, sector performance, and Nifty PCR)
 export async function getMarketMetrics() {
-  // Get market indices
+  // Get global market indices
   const indices = await db.select().from(schema.marketIndices)
     .orderBy(desc(schema.marketIndices.timestamp))
     .limit(10);
@@ -88,6 +88,22 @@ export async function getMarketMetrics() {
     if (!indexNames.has(index.name)) {
       uniqueIndices.push(index);
       indexNames.add(index.name);
+    }
+  }
+  
+  // Get Indian market indices
+  const indianIndices = await db.select().from(schema.indianMarketIndices)
+    .orderBy(desc(schema.indianMarketIndices.timestamp))
+    .limit(10);
+  
+  // Get unique Indian index names (to avoid duplicates)
+  const uniqueIndianIndices = [];
+  const indianIndexNames = new Set();
+  
+  for (const index of indianIndices) {
+    if (!indianIndexNames.has(index.name)) {
+      uniqueIndianIndices.push(index);
+      indianIndexNames.add(index.name);
     }
   }
   
@@ -107,8 +123,18 @@ export async function getMarketMetrics() {
     }
   }
   
+  // Get latest Nifty PCR data
+  const [niftyPCRData] = await db.select().from(schema.niftyPCR)
+    .orderBy(desc(schema.niftyPCR.timestamp))
+    .limit(1);
+  
   return {
     indices: uniqueIndices.map(index => ({
+      name: index.name,
+      value: Number(index.value),
+      change: Number(index.change)
+    })),
+    indianIndices: uniqueIndianIndices.map(index => ({
       name: index.name,
       value: Number(index.value),
       change: Number(index.change)
@@ -116,7 +142,14 @@ export async function getMarketMetrics() {
     sectorPerformance: uniqueSectors.map(sector => ({
       name: sector.name,
       change: Number(sector.change)
-    }))
+    })),
+    niftyPCR: niftyPCRData ? {
+      value: Number(niftyPCRData.value),
+      change: Number(niftyPCRData.change),
+      putVolume: Number(niftyPCRData.putVolume),
+      callVolume: Number(niftyPCRData.callVolume),
+      lastUpdated: niftyPCRData.timestamp.toISOString()
+    } : undefined
   };
 }
 
@@ -258,12 +291,33 @@ export async function updateSentiment(sentimentData: any) {
   }
 }
 
+// Get upcoming events
+export async function getUpcomingEvents() {
+  const now = new Date();
+  
+  const events = await db.select().from(schema.upcomingEvents)
+    .where(gte(schema.upcomingEvents.eventDate, now))
+    .orderBy(schema.upcomingEvents.eventDate)
+    .limit(10);
+  
+  return events.map(event => ({
+    id: event.id,
+    title: event.title,
+    description: event.description,
+    eventDate: event.eventDate.toISOString(),
+    importance: event.importance,
+    type: event.type,
+    impact: event.impact
+  }));
+}
+
 export const storage = {
   getCurrentSentiment,
   getHistoricalSentiment,
   getNewsItems,
   getMarketMetrics,
   getMarketFactors,
+  getUpcomingEvents,
   updateMarketData,
   addNewsItems,
   updateSentiment

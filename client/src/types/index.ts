@@ -5,7 +5,7 @@ export type TimeFrame = "1D" | "1W" | "1M" | "3M" | "1Y" | "All";
 export interface SentimentData {
   score: number;
   change: number;
-  marketStatus: string;
+  marketStatus: string; // Now referred to as IV Score status instead of Bullish/Bearish
   trendDirection: string;
   volatility: string;
   confidence: {
@@ -13,6 +13,33 @@ export interface SentimentData {
     value: number;
   };
   lastUpdated: string;
+}
+
+// Nifty PCR data
+export interface NiftyPCRData {
+  value: number;
+  change: number;
+  putVolume: number;
+  callVolume: number;
+  lastUpdated: string;
+}
+
+// Upcoming event
+export interface UpcomingEvent {
+  id: number;
+  title: string;
+  description?: string;
+  eventDate: string;
+  importance: 'high' | 'medium' | 'low';
+  type: string;
+  impact: 'positive' | 'negative' | 'neutral';
+}
+
+// Indian market index
+export interface IndianMarketIndex {
+  name: string;
+  value: number;
+  change: number;
 }
 
 // Key market events
@@ -63,7 +90,9 @@ export interface SectorPerformance {
 // Market metrics data
 export interface MarketMetricsData {
   indices: MarketIndex[];
+  indianIndices: IndianMarketIndex[];
   sectorPerformance: SectorPerformance[];
+  niftyPCR?: NiftyPCRData;
 }
 
 // Factor element data

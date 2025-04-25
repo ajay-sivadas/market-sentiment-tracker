@@ -18,12 +18,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Sentiment Scores table
+// Sentiment Scores table (renamed to IV Score)
 export const sentimentScores = pgTable("sentiment_scores", {
   id: serial("id").primaryKey(),
   score: decimal("score", { precision: 5, scale: 2 }).notNull(),
   change: decimal("change", { precision: 5, scale: 2 }).notNull(),
-  marketStatus: text("market_status").notNull(),
+  marketStatus: text("market_status").notNull(), // Will display as IV Score instead of Bullish/Bearish
   trendDirection: text("trend_direction").notNull(),
   volatility: text("volatility").notNull(),
   confidenceLabel: text("confidence_label").notNull(),
@@ -123,6 +123,48 @@ export const factorElements = pgTable("factor_elements", {
 export const insertFactorElementSchema = createInsertSchema(factorElements);
 export type InsertFactorElement = z.infer<typeof insertFactorElementSchema>;
 export type FactorElement = typeof factorElements.$inferSelect;
+
+// Indian Market Indices table
+export const indianMarketIndices = pgTable("indian_market_indices", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  value: decimal("value", { precision: 10, scale: 2 }).notNull(),
+  change: decimal("change", { precision: 5, scale: 2 }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertIndianMarketIndexSchema = createInsertSchema(indianMarketIndices);
+export type InsertIndianMarketIndex = z.infer<typeof insertIndianMarketIndexSchema>;
+export type IndianMarketIndex = typeof indianMarketIndices.$inferSelect;
+
+// Nifty PCR (Put-Call Ratio) data
+export const niftyPCR = pgTable("nifty_pcr", {
+  id: serial("id").primaryKey(),
+  value: decimal("value", { precision: 5, scale: 2 }).notNull(),
+  change: decimal("change", { precision: 5, scale: 2 }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  putVolume: decimal("put_volume", { precision: 12, scale: 0 }).notNull(),
+  callVolume: decimal("call_volume", { precision: 12, scale: 0 }).notNull(),
+});
+
+export const insertNiftyPCRSchema = createInsertSchema(niftyPCR);
+export type InsertNiftyPCR = z.infer<typeof insertNiftyPCRSchema>;
+export type NiftyPCR = typeof niftyPCR.$inferSelect;
+
+// Upcoming Events table
+export const upcomingEvents = pgTable("upcoming_events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  eventDate: timestamp("event_date").notNull(),
+  importance: text("importance").notNull(), // 'high', 'medium', 'low'
+  type: text("type").notNull(), // 'earnings', 'economic', 'policy', etc.
+  impact: text("impact").notNull(), // 'positive', 'negative', 'neutral'
+});
+
+export const insertUpcomingEventSchema = createInsertSchema(upcomingEvents);
+export type InsertUpcomingEvent = z.infer<typeof insertUpcomingEventSchema>;
+export type UpcomingEvent = typeof upcomingEvents.$inferSelect;
 
 // Define relations
 export const marketFactorsRelations = relations(marketFactors, ({ many }) => ({
