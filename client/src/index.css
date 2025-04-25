@@ -37,6 +37,38 @@
     --radius: 0.5rem;
   }
   
+  .dark {
+    --background: 225 6% 13%;  /* #1E2130 */
+    --foreground: 0 0% 96.1%;
+    
+    --card: 225 6% 16%;  /* #24273C */
+    --card-foreground: 0 0% 96.1%;
+    
+    --popover: 225 6% 16%;
+    --popover-foreground: 0 0% 96.1%;
+    
+    --primary: 207 84% 52%;  /* #1E88E5 */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 340 100% 63%;  /* #FF4081 */
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 225 6% 25%;
+    --muted-foreground: 0 0% 70%;
+    
+    --accent: 225 6% 25%;
+    --accent-foreground: 0 0% 96.1%;
+    
+    --destructive: 0 70% 50%;  /* #D32F2F */
+    --destructive-foreground: 0 0% 100%;
+    
+    --positive: 142 100% 39%;  /* #00C853 */
+    
+    --border: 225 6% 25%;
+    --input: 225 6% 25%;
+    --ring: 207 84% 52%;
+  }
+  
   * {
     @apply border-border;
   }
@@ -74,13 +106,26 @@
   background: #f1f1f1;
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #2a2d3d;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4a4d5d;
+  border-radius: 3px;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #5a5d6d;
 }
 
 .sentiment-score {
@@ -112,4 +157,13 @@
 .chart-grid {
   stroke: #E0E0E0;
   stroke-width: 1;
+}
+
+.dark .chart-grid {
+  stroke: #3a3d4d;
+  stroke-width: 1;
+}
+
+.dark .news-item:hover {
+  background-color: rgba(30, 136, 229, 0.15);
 }
