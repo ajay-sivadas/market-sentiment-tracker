@@ -6,12 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface SentimentScorePanelProps {
   data?: SentimentData;
   isLoading: boolean;
+  marketMetrics?: any; // Will include Nifty PCR and other market metrics
+  loadingMetrics?: boolean;
 }
 
-export default function SentimentScorePanel({ data, isLoading }: SentimentScorePanelProps) {
+export default function SentimentScorePanel({ data, isLoading, marketMetrics, loadingMetrics }: SentimentScorePanelProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 md:col-span-1">
+      <div className="bg-card rounded-lg shadow-sm p-6 md:col-span-1">
         <h3 className="text-lg font-medium mb-4">Current Sentiment</h3>
         <div className="sentiment-score mb-6 flex flex-col items-center">
           <Skeleton className="h-10 w-24 mb-2" />
@@ -36,6 +38,13 @@ export default function SentimentScorePanel({ data, isLoading }: SentimentScoreP
   const { score, change, marketStatus, trendDirection, volatility, confidence } = data;
   const isPositive = change > 0;
   const scorePercentage = score;
+  
+  // Helper function to get color based on percentage change
+  const getChangeColor = (change: number) => {
+    if (change > 0) return 'dark:text-[#00FF95] text-[#00C853]';
+    if (change < 0) return 'dark:text-[#FF4F4F] text-destructive';
+    return 'text-muted-foreground';
+  };
   
   // Determine status colors
   const getStatusColor = (status: string) => {
@@ -113,6 +122,80 @@ export default function SentimentScorePanel({ data, isLoading }: SentimentScoreP
           <span className="font-medium">{confidence.label} ({confidence.value}%)</span>
         </div>
       </div>
+      
+      {/* Market Indicators Tabs */}
+      {marketMetrics && (
+        <div className="mt-6 pt-4 border-t border-background">
+          <h4 className="text-sm font-medium mb-3">Market Indicators</h4>
+          <Tabs defaultValue="nifty-pcr" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-3">
+              <TabsTrigger value="nifty-pcr">Nifty PCR</TabsTrigger>
+              <TabsTrigger value="india-vix">India VIX</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="nifty-pcr" className="space-y-2">
+              {marketMetrics.niftyPCR && (
+                <>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm">Put-Call Ratio</span>
+                    <div className={`flex items-center ${getChangeColor(marketMetrics.niftyPCR.change)}`}>
+                      <span className="font-mono font-medium">{marketMetrics.niftyPCR.value.toFixed(2)}</span>
+                      <span className="ml-2 text-xs">
+                        {marketMetrics.niftyPCR.change > 0 ? '+' : ''}{marketMetrics.niftyPCR.change}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs p-2 bg-background rounded-md mb-2">
+                    <p>PCR values {">"}1 indicate bearish sentiment (more puts than calls)</p>
+                    <p>PCR values {"<"}1 indicate bullish sentiment (more calls than puts)</p>
+                  </div>
+                  
+                  <div className="flex justify-between text-xs mt-3">
+                    <div>
+                      <span className="block text-muted-foreground">Puts Volume</span>
+                      <span className="font-mono">{marketMetrics.niftyPCR.putVolume.toLocaleString()}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-muted-foreground">Calls Volume</span>
+                      <span className="font-mono">{marketMetrics.niftyPCR.callVolume.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="india-vix" className="space-y-3">
+              {marketMetrics.indianIndices && (
+                <>
+                  {marketMetrics.indianIndices.map((index: any) => {
+                    if (index.name.toLowerCase().includes('vix')) {
+                      return (
+                        <div key={index.name} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">{index.name}</span>
+                            <div className={`flex items-center ${getChangeColor(index.change)}`}>
+                              <span className="font-mono">{index.value.toLocaleString()}</span>
+                              <span className="ml-2 text-xs">{index.change > 0 ? '+' : ''}{index.change}%</span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-xs p-2 bg-background rounded-md">
+                            <p>VIX measures market's expectation of volatility.</p>
+                            <p>High VIX ({">"}20): More fear, higher volatility</p>
+                            <p>Low VIX ({"<"}15): Less fear, calmer markets</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
     </div>
   );
 }

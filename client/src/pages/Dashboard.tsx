@@ -56,7 +56,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <SentimentScorePanel 
             data={currentSentiment} 
-            isLoading={loadingSentiment} 
+            isLoading={loadingSentiment}
+            marketMetrics={marketMetrics}
+            loadingMetrics={loadingMetrics}
           />
           
           <SentimentChartPanel 
