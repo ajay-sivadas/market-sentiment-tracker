@@ -1,10 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import * as marketDataService from "./services/marketData";
 import * as newsScraperService from "./services/newsScraper";
 import * as sentimentAnalyzerService from "./services/sentimentAnalyzer";
 import { TimeFrameType } from "./services/marketData";
+import { log } from "./vite";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API prefix
@@ -103,6 +105,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Initialize WebSocket server on a distinct path to avoid conflicts with Vite's HMR
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws) => {
+    log('WebSocket client connected', 'ws-server');
+    
+    // Send current data to client
+    const sendInitialData = async () => {
+      try {
+        // Get the latest sentiment data
+        const currentSentiment = await storage.getCurrentSentiment();
+        
+        // Send initial data to client
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'sentiment',
+            data: currentSentiment
+          }));
+        }
+      } catch (error) {
+        console.error('Error sending initial WebSocket data:', error);
+      }
+    };
+    
+    // Send initial data when client connects
+    sendInitialData();
+    
+    // Set up interval to send real-time market updates
+    const intervalId = setInterval(async () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          // Generate real-time market data for Nifty50
+          const niftyValue = 22000 + (Math.random() - 0.5) * 200; // Random value around 22000
+          
+          // Generate a sentiment score update with slight variations
+          const currentSentiment = await storage.getCurrentSentiment();
+          const sentimentUpdate = {
+            ...currentSentiment,
+            score: currentSentiment.score + (Math.random() - 0.5) * 2, // Small random variation
+            lastUpdated: new Date().toISOString()
+          };
+          
+          // Send the combined real-time data
+          ws.send(JSON.stringify({
+            type: 'live-update',
+            data: {
+              timestamp: new Date().toISOString(),
+              niftyValue,
+              score: sentimentUpdate.score
+            }
+          }));
+        } catch (error) {
+          console.error('Error sending WebSocket update:', error);
+        }
+      }
+    }, 3000); // Send updates every 3 seconds
+    
+    // Handle client disconnection
+    ws.on('close', () => {
+      log('WebSocket client disconnected', 'ws-server');
+      clearInterval(intervalId);
+    });
+    
+    // Handle client messages
+    ws.on('message', (message) => {
+      try {
+        const parsedMessage = JSON.parse(message.toString());
+        log(`Received message from client: ${JSON.stringify(parsedMessage)}`, 'ws-server');
+        
+        // Handle different message types from client
+        if (parsedMessage.type === 'subscribe') {
+          // Client subscribing to a specific data stream
+          log(`Client subscribed to: ${parsedMessage.channel}`, 'ws-server');
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+  });
 
   return httpServer;
 }

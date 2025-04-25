@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { Image, FileText, Download, BarChart2, TrendingUp } from "lucide-react";
+import { Image, FileText, Download, BarChart2, TrendingUp, Wifi, WifiOff } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HistoricalSentimentData, TimeFrame, KeyEvent, SentimentHistoryPoint } from "@/types";
 import { 
@@ -20,6 +20,7 @@ import {
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 interface SentimentChartPanelProps {
   data?: HistoricalSentimentData;
@@ -44,59 +45,34 @@ export default function SentimentChartPanel({
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [showNiftyData, setShowNiftyData] = useState<boolean>(true);
   
-  // Generate mock Nifty data
-  const generateNiftyValue = (baseValue: number = 22000) => {
-    // Random fluctuation between -100 and +100
-    const randomFluctuation = (Math.random() - 0.5) * 200;
-    return baseValue + randomFluctuation;
-  };
+  // Setup WebSocket connection for real-time data
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const { isConnected, liveData: wsLiveData, latestMessage } = useWebSocket(wsUrl);
 
-  // Simulate live data updates
+  // Process data from WebSocket
   useEffect(() => {
     if (!data || !data.sentimentHistory || data.sentimentHistory.length === 0) return;
     
-    // Initialize with the last 20 points from historical data and add Nifty values
-    const initialData = [...data.sentimentHistory].slice(-20).map(point => ({
-      ...point,
-      niftyValue: generateNiftyValue()
-    }));
+    // Initialize with the last 20 points from historical data
+    // This will show initially before WebSocket data comes in
+    if (liveData.length === 0) {
+      const initialData = [...data.sentimentHistory].slice(-20).map(point => ({
+        ...point,
+        niftyValue: 22000 + (Math.random() - 0.5) * 200 // Initial value until WebSocket data arrives
+      }));
+      
+      setLiveData(initialData);
+    }
     
-    setLiveData(initialData);
-    
-    // Update live data every few seconds
-    const interval = setInterval(() => {
-      const lastPoint = liveData[liveData.length - 1];
-      if (!lastPoint) return;
-      
-      const lastScore = lastPoint.score;
-      const lastNiftyValue = lastPoint.niftyValue || 22000;
-      
-      // Generate a new point with small random variation
-      const randomScoreChange = (Math.random() - 0.5) * 2; // Between -1 and 1
-      const newScore = Math.max(0, Math.min(100, lastScore + randomScoreChange));
-      
-      // Generate a slight variation for Nifty based on last value
-      const randomNiftyChange = (Math.random() - 0.5) * 30; // Small change
-      const newNiftyValue = lastNiftyValue + randomNiftyChange;
-      
-      const newPoint: CombinedDataPoint = {
-        timestamp: new Date().toISOString(),
-        score: newScore,
-        niftyValue: newNiftyValue
-      };
-      
-      // Add new point and remove oldest if more than 60 points
-      const newData = [...liveData, newPoint];
-      if (newData.length > 60) {
-        newData.shift();
+    // Update with WebSocket data when available
+    if (wsLiveData.length > 0) {
+      setLiveData(wsLiveData);
+      if (wsLiveData.length > 0) {
+        setLastUpdate(new Date().toLocaleTimeString());
       }
-      
-      setLiveData(newData);
-      setLastUpdate(new Date().toLocaleTimeString());
-    }, 3000); // Update every 3 seconds
-    
-    return () => clearInterval(interval);
-  }, [data, liveData.length]);
+    }
+  }, [data, wsLiveData]);
 
   if (isLoading || !data) {
     return (
@@ -241,6 +217,14 @@ export default function SentimentChartPanel({
                 <TrendingUp className="h-3 w-3" />
                 <span>Nifty</span>
               </button>
+            </div>
+            <div className="flex items-center">
+              {isConnected ? (
+                <Wifi className="h-3 w-3 text-green-500 mr-1" />
+              ) : (
+                <WifiOff className="h-3 w-3 text-red-500 mr-1" />
+              )}
+              <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
             </div>
             {lastUpdate && (
               <div className="flex items-center">
