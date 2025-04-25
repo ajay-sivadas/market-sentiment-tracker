@@ -11,7 +11,7 @@ interface NewsPanelProps {
 export default function NewsPanel({ data, isLoading }: NewsPanelProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-lg shadow-sm md:col-span-2">
+      <div className="bg-card rounded-lg shadow-sm md:col-span-2">
         <div className="p-4 border-b border-background">
           <h3 className="text-lg font-medium">Market News Impact</h3>
         </div>
@@ -38,7 +38,7 @@ export default function NewsPanel({ data, isLoading }: NewsPanelProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm md:col-span-2">
+    <div className="bg-card rounded-lg shadow-sm md:col-span-2">
       <div className="p-4 border-b border-background">
         <h3 className="text-lg font-medium">Market News Impact</h3>
       </div>
@@ -53,7 +53,7 @@ export default function NewsPanel({ data, isLoading }: NewsPanelProps) {
               <span className="text-sm text-muted-foreground font-mono">
                 {format(new Date(newsItem.timestamp), 'MMM d, HH:mm')}
               </span>
-              <div className={`flex items-center ${newsItem.sentimentImpact > 0 ? 'text-[#00C853]' : 'text-destructive'}`}>
+              <div className={`flex items-center ${newsItem.sentimentImpact > 0 ? 'dark:text-[#00FF95] text-[#00C853]' : 'dark:text-[#FF4F4F] text-destructive'}`}>
                 {newsItem.sentimentImpact > 0 ? (
                   <ArrowUp className="h-4 w-4" />
                 ) : (

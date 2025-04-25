@@ -121,9 +121,9 @@ export default function SentimentChartPanel({
   
   // Get event color based on impact type
   const getEventColor = (impact: string) => {
-    if (impact === 'positive') return '#00C853';
-    if (impact === 'negative') return '#D32F2F';
-    return '#1E88E5';
+    if (impact === 'positive') return document.documentElement.classList.contains('dark') ? '#00FF95' : '#00C853';
+    if (impact === 'negative') return document.documentElement.classList.contains('dark') ? '#FF4F4F' : '#D32F2F';
+    return document.documentElement.classList.contains('dark') ? '#00C2FF' : '#1E88E5';
   };
 
   return (
@@ -164,11 +164,11 @@ export default function SentimentChartPanel({
             >
               <defs>
                 <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={document.documentElement.classList.contains('dark') ? "#2C2C2E" : "#E0E0E0"} />
               <XAxis 
                 dataKey="timestamp" 
                 tick={{ fontSize: 12, fill: '#757575' }}
@@ -186,7 +186,7 @@ export default function SentimentChartPanel({
               <Area 
                 type="monotone" 
                 dataKey="score" 
-                stroke="#1E88E5" 
+                stroke={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} 
                 fillOpacity={1} 
                 fill="url(#colorScore)" 
               />
@@ -252,10 +252,10 @@ export default function SentimentChartPanel({
               data={liveData}
               margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={document.documentElement.classList.contains('dark') ? "#2C2C2E" : "#E0E0E0"} />
               <XAxis 
                 dataKey="timestamp" 
-                tick={{ fontSize: 12, fill: '#757575' }}
+                tick={{ fontSize: 12, fill: document.documentElement.classList.contains('dark') ? '#A0A0A0' : '#757575' }}
                 tickFormatter={(timestamp) => format(new Date(timestamp), 'HH:mm:ss')}
                 minTickGap={30}
               />
@@ -296,7 +296,7 @@ export default function SentimentChartPanel({
               <Line 
                 type="monotone" 
                 dataKey="score" 
-                stroke="#1E88E5" 
+                stroke={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} 
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}
@@ -306,7 +306,7 @@ export default function SentimentChartPanel({
                 <Line 
                   type="monotone" 
                   dataKey="niftyValue" 
-                  stroke="#10b981" 
+                  stroke={document.documentElement.classList.contains('dark') ? "#00FF95" : "#10b981"} 
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
