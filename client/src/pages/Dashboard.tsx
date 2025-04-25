@@ -7,6 +7,7 @@ import SentimentChartPanel from "@/components/SentimentChartPanel";
 import NewsPanel from "@/components/NewsPanel";
 import MarketMetricsPanel from "@/components/MarketMetricsPanel";
 import MarketFactorsPanel from "@/components/MarketFactorsPanel";
+import UpcomingEventsPanel from "@/components/UpcomingEventsPanel";
 import Footer from "@/components/Footer";
 import { TimeFrame } from "@/types";
 
@@ -75,6 +76,8 @@ export default function Dashboard() {
             data={marketMetrics} 
             isLoading={loadingMetrics} 
           />
+          
+          <UpcomingEventsPanel />
         </div>
         
         <MarketFactorsPanel 
