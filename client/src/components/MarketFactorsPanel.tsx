@@ -9,7 +9,7 @@ interface MarketFactorsPanelProps {
 export default function MarketFactorsPanel({ data, isLoading }: MarketFactorsPanelProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+      <div className="bg-card rounded-lg shadow-sm p-6 mt-6">
         <h3 className="text-lg font-medium mb-4">Contributing Factors</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -41,18 +41,18 @@ export default function MarketFactorsPanel({ data, isLoading }: MarketFactorsPan
     if (status.toLowerCase().includes('strong') || 
         status.toLowerCase().includes('positive') || 
         status.toLowerCase().includes('bullish')) {
-      return 'text-[#00C853]';
+      return 'dark:text-[#00FF95] text-[#00C853]';
     }
     if (status.toLowerCase().includes('weak') || 
         status.toLowerCase().includes('negative') || 
         status.toLowerCase().includes('bearish')) {
-      return 'text-destructive';
+      return 'dark:text-[#FF4F4F] text-destructive';
     }
     return 'text-primary';
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+    <div className="bg-card rounded-lg shadow-sm p-6 mt-6">
       <h3 className="text-lg font-medium mb-4">Contributing Factors</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -60,7 +60,7 @@ export default function MarketFactorsPanel({ data, isLoading }: MarketFactorsPan
           <div key={index} className="border border-background rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium">{factor.name}</h4>
-              <span className={`text-sm font-mono font-medium ${factor.score > 0 ? 'text-[#00C853]' : 'text-destructive'}`}>
+              <span className={`text-sm font-mono font-medium ${factor.score > 0 ? 'dark:text-[#00FF95] text-[#00C853]' : 'dark:text-[#FF4F4F] text-destructive'}`}>
                 {factor.score > 0 ? '+' : ''}{factor.score.toFixed(1)}
               </span>
             </div>

@@ -10,7 +10,7 @@ interface MarketMetricsPanelProps {
 export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPanelProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-lg shadow-sm md:col-span-1">
+      <div className="bg-card rounded-lg shadow-sm md:col-span-1">
         <div className="p-4 border-b border-background">
           <h3 className="text-lg font-medium">Market Metrics</h3>
           <Skeleton className="h-8 w-48 mt-2" />
@@ -45,8 +45,8 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
   
   // Helper function to get color based on percentage change
   const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-[#00C853]';
-    if (change < 0) return 'text-destructive';
+    if (change > 0) return 'dark:text-[#00FF95] text-[#00C853]';
+    if (change < 0) return 'dark:text-[#FF4F4F] text-destructive';
     return 'text-muted-foreground';
   };
   
@@ -59,20 +59,20 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
   
   // Helper function to get bar color
   const getBarColor = (change: number) => {
-    if (change > 0) return 'bg-[#00C853]';
-    if (change < 0) return 'bg-destructive';
+    if (change > 0) return 'dark:bg-[#00FF95] bg-[#00C853]';
+    if (change < 0) return 'dark:bg-[#FF4F4F] bg-destructive';
     return 'bg-primary';
   };
   
   // Helper function to get dot color for sector performance
   const getSectorDotColor = (sector: SectorPerformance) => {
-    if (sector.change > 0.5) return 'bg-[#00C853]';
-    if (sector.change < -0.5) return 'bg-destructive';
+    if (sector.change > 0.5) return 'dark:bg-[#00FF95] bg-[#00C853]';
+    if (sector.change < -0.5) return 'dark:bg-[#FF4F4F] bg-destructive';
     return 'bg-primary';
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm md:col-span-1">
+    <div className="bg-card rounded-lg shadow-sm md:col-span-1">
       <div className="p-4 border-b border-background">
         <h3 className="text-lg font-medium">Market Metrics</h3>
         <Tabs defaultValue="indian" className="mt-2">

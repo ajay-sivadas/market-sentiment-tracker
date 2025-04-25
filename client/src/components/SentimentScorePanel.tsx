@@ -51,7 +51,7 @@ export default function SentimentScorePanel({ data, isLoading }: SentimentScoreP
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 md:col-span-1">
+    <div className="bg-card rounded-lg shadow-sm p-6 md:col-span-1">
       <h3 className="text-lg font-medium mb-4">Current Sentiment</h3>
       
       {/* Sentiment Score */}
@@ -59,11 +59,11 @@ export default function SentimentScorePanel({ data, isLoading }: SentimentScoreP
         <span className="text-4xl font-mono font-bold text-primary">{score.toFixed(1)}</span>
         <div className="flex items-center mt-2">
           {isPositive ? (
-            <ArrowUp className="h-5 w-5 text-[#00C853]" />
+            <ArrowUp className="h-5 w-5 dark:text-[#00FF95] text-[#00C853]" />
           ) : (
-            <ArrowDown className="h-5 w-5 text-destructive" />
+            <ArrowDown className="h-5 w-5 dark:text-[#FF4F4F] text-destructive" />
           )}
-          <span className={`ml-1 font-mono ${isPositive ? 'text-[#00C853]' : 'text-destructive'}`}>
+          <span className={`ml-1 font-mono ${isPositive ? 'dark:text-[#00FF95] text-[#00C853]' : 'dark:text-[#FF4F4F] text-destructive'}`}>
             {isPositive ? '+' : ''}{change.toFixed(1)}
           </span>
           <span className="ml-1 text-sm text-muted-foreground">today</span>
@@ -74,11 +74,11 @@ export default function SentimentScorePanel({ data, isLoading }: SentimentScoreP
       <div className="mb-6">
         <div className="relative h-4 bg-background rounded-full overflow-hidden mb-2">
           <div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-destructive via-yellow-400 to-[#00C853]" 
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-destructive via-yellow-400 to-[#00C853] dark:from-[#FF4F4F] dark:via-[#FFD600] dark:to-[#00FF95]" 
             style={{ width: `${scorePercentage}%` }}
           ></div>
           <div 
-            className="absolute top-0 left-0 h-full w-px bg-white" 
+            className="absolute top-0 left-0 h-full w-px bg-foreground" 
             style={{ left: `${scorePercentage}%` }}
           ></div>
         </div>
