@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { useMarketMetrics } from "@/hooks/useMarketMetrics";
 import Header from "@/components/Header";
 import TimeFrameSelector from "@/components/TimeFrameSelector";
 import SentimentScorePanel from "@/components/SentimentScorePanel";
@@ -15,12 +16,15 @@ import {
   SentimentData, 
   HistoricalSentimentData, 
   NewsItemData, 
-  MarketMetricsData, 
-  MarketFactorsData 
+  MarketFactorsData,
+  IVScoreDataPoint
 } from "@/types";
+import { parseIVScoreCSV } from "@/utils/csvParser";
+import ivScoreData from "@/data/ivscore.csv?raw";
 
 export default function Dashboard() {
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("1M");
+  const [parsedIVScoreData, setParsedIVScoreData] = useState<IVScoreDataPoint[]>([]);
   
   // Setup WebSocket connection for real-time data
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -45,6 +49,12 @@ export default function Dashboard() {
     queryKey: ["/api/sentiment/current"],
   });
 
+  // Debug sentiment data fetching
+  useEffect(() => {
+    console.log('Dashboard - Loading Sentiment:', loadingSentiment);
+    console.log('Dashboard - Current Sentiment:', currentSentiment);
+  }, [loadingSentiment, currentSentiment]);
+
   // Fetch historical sentiment data based on selected timeframe
   const { data: historicalSentiment, isLoading: loadingHistorical } = useQuery<HistoricalSentimentData>({
     queryKey: ["/api/sentiment/historical", timeFrame],
@@ -55,15 +65,23 @@ export default function Dashboard() {
     queryKey: ["/api/news", timeFrame],
   });
 
-  // Fetch market metrics
-  const { data: marketMetrics, isLoading: loadingMetrics } = useQuery<MarketMetricsData>({
-    queryKey: ["/api/market-metrics"],
-  });
+  // Use our custom hook for market metrics
+  const { data: marketMetrics, isLoading: loadingMetrics } = useMarketMetrics();
 
   // Fetch market factors
   const { data: marketFactors, isLoading: loadingFactors } = useQuery<MarketFactorsData>({
     queryKey: ["/api/market-factors"],
   });
+
+  // Parse IV score data
+  useEffect(() => {
+    try {
+      const parsedData = parseIVScoreCSV(ivScoreData);
+      setParsedIVScoreData(parsedData);
+    } catch (error) {
+      console.error('Error parsing IV score data:', error);
+    }
+  }, []);
 
   const handleTimeFrameChange = (newTimeFrame: TimeFrame) => {
     setTimeFrame(newTimeFrame);
@@ -85,6 +103,7 @@ export default function Dashboard() {
             isLoading={loadingSentiment}
             marketMetrics={marketMetrics}
             loadingMetrics={loadingMetrics}
+            ivScoreData={parsedIVScoreData}
           />
           
           <SentimentChartPanel 
@@ -93,6 +112,7 @@ export default function Dashboard() {
             timeFrame={timeFrame}
             liveData={liveData}
             isConnected={isConnected}
+            ivScoreData={parsedIVScoreData}
           />
         </div>
         

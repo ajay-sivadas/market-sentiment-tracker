@@ -1,0 +1,10 @@
+/Users/ajaysivadas/Fundfolio/MarketMood/vite.config.ts:21
+      "@db": path.resolve(__dirname, "db"),
+                          ^
+
+
+ReferenceError: __dirname is not defined in ES module scope
+    at <anonymous> (/Users/ajaysivadas/Fundfolio/MarketMood/vite.config.ts:21:27)
+    at ModuleJob.run (node:internal/modules/esm/module_job:192:25)
+
+Node.js v20.1.0

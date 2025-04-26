@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Image, FileText, Download, BarChart2, TrendingUp, Wifi, WifiOff } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HistoricalSentimentData, TimeFrame, KeyEvent, SentimentHistoryPoint } from "@/types";
+import { HistoricalSentimentData, TimeFrame, KeyEvent, SentimentHistoryPoint, IVScoreDataPoint } from "@/types";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -13,10 +13,10 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip,
-  ReferenceDot,
   Legend,
   ComposedChart,
-  Bar
+  Bar,
+  ReferenceDot
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -26,15 +26,16 @@ interface SentimentChartPanelProps {
   data?: HistoricalSentimentData;
   isLoading: boolean;
   timeFrame: TimeFrame;
-  liveData?: any[]; // For WebSocket real-time data
-  isConnected?: boolean; // WebSocket connection status
+  liveData?: any[];
+  isConnected?: boolean;
+  ivScoreData?: IVScoreDataPoint[];
 }
 
-// Type for combined sentiment and Nifty data points
+// Type for combined sentiment and IV score data points
 interface CombinedDataPoint {
   timestamp: string;
   score: number;
-  niftyValue?: number;
+  closePrice: number;
 }
 
 export default function SentimentChartPanel({ 
@@ -42,28 +43,35 @@ export default function SentimentChartPanel({
   isLoading,
   timeFrame,
   liveData: externalLiveData,
-  isConnected: wsConnected
+  isConnected: wsConnected,
+  ivScoreData
 }: SentimentChartPanelProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const [localLiveData, setLocalLiveData] = useState<CombinedDataPoint[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>("");
-  const [showNiftyData, setShowNiftyData] = useState<boolean>(true);
+  const [showIVScore, setShowIVScore] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<'historical' | 'live'>('historical');
   
   // Use the connection status from props or default to false
   const isConnected = wsConnected ?? false;
 
-  // Process data from WebSocket
+  // Update the data combination logic
+  const combinedHistoricalData = ivScoreData?.map(point => {
+    const score = typeof point.averageIVScore === 'number' ? point.averageIVScore * 100 : 0;
+    return {
+      timestamp: point.timestamp,
+      score,
+      closePrice: point.closePrice
+    };
+  }) || [];
+
+  // Process data from WebSocket and IV score data
   useEffect(() => {
     if (!data || !data.sentimentHistory || data.sentimentHistory.length === 0) return;
     
     // Initialize with the last 20 points from historical data
-    // This will show initially before WebSocket data comes in
     if (localLiveData.length === 0) {
-      const initialData = [...data.sentimentHistory].slice(-20).map(point => ({
-        ...point,
-        niftyValue: 22000 + (Math.random() - 0.5) * 200 // Initial value until WebSocket data arrives
-      }));
-      
+      const initialData = combinedHistoricalData.slice(-20);
       setLocalLiveData(initialData);
     }
     
@@ -72,7 +80,35 @@ export default function SentimentChartPanel({
       setLocalLiveData(externalLiveData);
       setLastUpdate(new Date().toLocaleTimeString());
     }
-  }, [data, externalLiveData, localLiveData.length]);
+  }, [data, externalLiveData, localLiveData.length, ivScoreData]);
+
+  // Calculate Y-axis domains for both historical and live data
+  const calculateYAxisDomain = (data: CombinedDataPoint[]) => ({
+    left: [
+      Math.min(...data.map(d => d.score)) * 0.995,
+      Math.max(...data.map(d => d.score)) * 1.005
+    ],
+    right: [
+      Math.min(...data.map(d => d.closePrice)) * 0.995,
+      Math.max(...data.map(d => d.closePrice)) * 1.005
+    ]
+  });
+
+  const historicalYAxisDomain = calculateYAxisDomain(combinedHistoricalData);
+  const liveYAxisDomain = localLiveData.length > 0 ? calculateYAxisDomain(localLiveData) : historicalYAxisDomain;
+
+  // Use the appropriate domain based on the active tab
+  const yAxisDomain = activeTab === 'historical' ? historicalYAxisDomain : liveYAxisDomain;
+
+  // Update tooltip formatter
+  const formatTooltip = (value: number) => {
+    return value.toFixed(1);
+  };
+
+  // Update Y-axis formatter
+  const formatYAxis = (value: number) => {
+    return value.toFixed(1);
+  };
 
   if (isLoading || !data) {
     return (
@@ -98,7 +134,7 @@ export default function SentimentChartPanel({
     );
   }
 
-  const { sentimentHistory, keyEvents } = data;
+  const { keyEvents } = data;
   
   // Format x-axis labels based on timeframe
   const formatXAxis = (timestamp: string) => {
@@ -113,11 +149,6 @@ export default function SentimentChartPanel({
       default: return format(date, "MMM d");
     }
   };
-  
-  // Set Y-axis domain with some padding
-  const minScore = Math.min(...sentimentHistory.map(item => item.score)) - 5;
-  const maxScore = Math.max(...sentimentHistory.map(item => item.score)) + 5;
-  const yDomain = [Math.max(0, minScore), Math.min(100, maxScore)];
   
   // Get event color based on impact type
   const getEventColor = (impact: string) => {
@@ -152,8 +183,8 @@ export default function SentimentChartPanel({
         
         <TabsContent value="historical" className="chart-container mt-2">
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
-              data={sentimentHistory}
+            <ComposedChart
+              data={combinedHistoricalData}
               margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
               onMouseMove={(e) => {
                 if (e.activeTooltipIndex !== undefined) {
@@ -180,11 +211,27 @@ export default function SentimentChartPanel({
                 minTickGap={30}
               />
               <YAxis 
-                domain={yDomain} 
+                yAxisId="left"
+                domain={yAxisDomain.left} 
                 tick={{ fontSize: 12, fill: '#757575' }}
+                tickFormatter={formatYAxis}
+                orientation="left"
+                label={{ value: 'IV Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
+              />
+              <YAxis 
+                yAxisId="right"
+                domain={yAxisDomain.right}
+                tick={{ fontSize: 12, fill: '#757575' }}
+                tickFormatter={(value) => value.toFixed(0)}
+                orientation="right"
+                label={{ value: 'Nifty 50', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
               />
               <Tooltip
-                formatter={(value: number) => [`${value.toFixed(1)}`, 'IV Score']}
+                formatter={(value: number, name: string) => {
+                  if (name === 'score') return [`${value.toFixed(1)}%`, 'IV Score'];
+                  if (name === 'closePrice') return [`${value.toFixed(2)}`, 'Nifty 50'];
+                  return [value, name];
+                }}
                 labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy HH:mm')}
                 contentStyle={{
                   backgroundColor: document.documentElement.classList.contains('dark') ? '#1E1E2F' : '#fff',
@@ -196,32 +243,44 @@ export default function SentimentChartPanel({
                 itemStyle={{ fontSize: '13px' }}
                 labelStyle={{ fontWeight: 'bold', marginBottom: '5px', fontSize: '12px' }}
               />
-              <Area 
+              <Line 
                 type="monotone" 
                 dataKey="score" 
                 stroke={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} 
-                fillOpacity={1} 
-                fill="url(#colorScore)"
-                strokeWidth={3}
-                activeDot={{ r: 6, fill: document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5", stroke: "white", strokeWidth: 2 }}
-                connectNulls={true}
-                animationDuration={300}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, fill: document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5", stroke: "white", strokeWidth: 1 }}
+                yAxisId="left"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="closePrice" 
+                stroke={document.documentElement.classList.contains('dark') ? "#FF4F4F" : "#D32F2F"} 
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, fill: document.documentElement.classList.contains('dark') ? "#FF4F4F" : "#D32F2F", stroke: "white", strokeWidth: 1 }}
+                yAxisId="right"
               />
               
               {/* Event markers */}
-              {keyEvents.map((event, index) => (
-                <ReferenceDot
-                  key={index}
-                  x={event.timestamp}
-                  y={sentimentHistory.find(item => item.timestamp === event.timestamp)?.score || 50}
-                  r={5}
-                  fill={getEventColor(event.impact)}
-                  stroke="white"
-                  strokeWidth={2}
-                  ifOverflow="extendDomain"
-                />
-              ))}
-            </AreaChart>
+              {keyEvents.map((event, index) => {
+                const matchingDataPoint = combinedHistoricalData.find(item => item.timestamp === event.timestamp);
+                if (!matchingDataPoint) return null;
+                
+                return (
+                  <ReferenceDot
+                    key={index}
+                    x={event.timestamp}
+                    y={matchingDataPoint.score}
+                    r={5}
+                    fill={getEventColor(event.impact)}
+                    stroke="white"
+                    strokeWidth={2}
+                    ifOverflow="extendDomain"
+                  />
+                );
+              })}
+            </ComposedChart>
           </ResponsiveContainer>
         </TabsContent>
         
@@ -229,11 +288,11 @@ export default function SentimentChartPanel({
           <div className="absolute top-0 right-0 z-10 text-xs text-muted-foreground p-2 flex items-center gap-3">
             <div className="flex items-center gap-2">
               <button 
-                className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 ${showNiftyData ? 'bg-primary-foreground' : 'bg-transparent'}`}
-                onClick={() => setShowNiftyData(!showNiftyData)}
+                className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 ${showIVScore ? 'bg-primary-foreground' : 'bg-transparent'}`}
+                onClick={() => setShowIVScore(!showIVScore)}
               >
                 <TrendingUp className="h-3 w-3" />
-                <span>Nifty</span>
+                <span>IV Score</span>
               </button>
             </div>
             <div className="flex items-center">
@@ -257,12 +316,10 @@ export default function SentimentChartPanel({
               <span className="w-2 h-2 rounded-full bg-primary mr-1"></span>
               IV Score
             </Badge>
-            {showNiftyData && (
-              <Badge variant="outline" className="bg-emerald-500/10 hover:bg-emerald-500/20">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>
-                Nifty50
-              </Badge>
-            )}
+            <Badge variant="outline" className="bg-red-500/10 hover:bg-red-500/20">
+              <span className="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
+              Nifty 50
+            </Badge>
           </div>
           
           <ResponsiveContainer width="100%" height={300}>
@@ -283,67 +340,46 @@ export default function SentimentChartPanel({
               />
               <YAxis 
                 yAxisId="left"
-                domain={[
-                  60, // Fixed y-axis range for better readability
-                  75  // Setting a fixed range from 60-75 for the sentiment score
-                ]} 
+                domain={yAxisDomain.left} 
                 tick={{ fontSize: 12, fill: '#757575' }}
+                tickFormatter={formatYAxis}
                 orientation="left"
                 label={{ value: 'IV Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
               />
-              {showNiftyData && (
-                <YAxis 
-                  yAxisId="right"
-                  domain={[
-                    21900, // Fixed Y-axis for Nifty with a stable range
-                    22100  // This will keep the chart more stable and readable
-                  ]} 
-                  tick={{ fontSize: 12, fill: '#757575' }}
-                  orientation="right"
-                  label={{ value: 'Nifty50', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
-                />
-              )}
+              <YAxis 
+                yAxisId="right"
+                domain={yAxisDomain.right}
+                tick={{ fontSize: 12, fill: '#757575' }}
+                tickFormatter={(value) => value.toFixed(0)}
+                orientation="right"
+                label={{ value: 'Nifty 50', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#757575', fontSize: 12 } }}
+              />
               <Tooltip
                 formatter={(value: number, name: string) => {
                   if (name === 'score') return [`${value.toFixed(1)}`, 'IV Score'];
-                  if (name === 'niftyValue') return [`${value.toFixed(1)}`, 'Nifty50'];
+                  if (name === 'closePrice') return [`${value.toFixed(2)}`, 'Nifty 50'];
                   return [value, name];
                 }}
                 labelFormatter={(label) => format(new Date(label), 'HH:mm:ss')}
-                contentStyle={{
-                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1E1E2F' : '#fff',
-                  border: document.documentElement.classList.contains('dark') ? '1px solid #3C3C4E' : '1px solid #E0E0E0',
-                  borderRadius: '4px',
-                  padding: '8px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
-                }}
-                itemStyle={{ fontSize: '13px' }}
-                labelStyle={{ fontWeight: 'bold', marginBottom: '5px', fontSize: '12px' }}
               />
               <Line 
                 type="monotone" 
                 dataKey="score" 
                 stroke={document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5"} 
-                strokeWidth={3}
+                strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 6, fill: document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5", stroke: "white", strokeWidth: 2 }}
+                activeDot={{ r: 4, fill: document.documentElement.classList.contains('dark') ? "#00C2FF" : "#1E88E5", stroke: "white", strokeWidth: 1 }}
                 yAxisId="left"
-                connectNulls={true}
-                animationDuration={300}
               />
-              {showNiftyData && (
-                <Line 
-                  type="monotone" 
-                  dataKey="niftyValue" 
-                  stroke={document.documentElement.classList.contains('dark') ? "#00FF95" : "#10b981"} 
-                  strokeWidth={3}
-                  dot={false}
-                  activeDot={{ r: 6, fill: document.documentElement.classList.contains('dark') ? "#00FF95" : "#10b981", stroke: "white", strokeWidth: 2 }}
-                  yAxisId="right"
-                  connectNulls={true}
-                  animationDuration={300}
-                />
-              )}
+              <Line 
+                type="monotone" 
+                dataKey="closePrice" 
+                stroke={document.documentElement.classList.contains('dark') ? "#FF4F4F" : "#D32F2F"} 
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, fill: document.documentElement.classList.contains('dark') ? "#FF4F4F" : "#D32F2F", stroke: "white", strokeWidth: 1 }}
+                yAxisId="right"
+              />
             </ComposedChart>
           </ResponsiveContainer>
         </TabsContent>

@@ -106,10 +106,6 @@ export default function UpcomingEventsPanel() {
                     <span>
                       {format(new Date(event.eventDate), 'MMM d, yyyy')}
                     </span>
-                    <Clock className="h-3 w-3 ml-2 mr-1" />
-                    <span>
-                      {format(new Date(event.eventDate), 'h:mm a')}
-                    </span>
                   </div>
                 </div>
                 <div className={`px-2 py-1 rounded-full text-xs flex items-center ${getImpactColor(event.impact)}`}>

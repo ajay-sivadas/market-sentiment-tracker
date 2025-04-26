@@ -112,3 +112,10 @@ export interface MarketFactor {
 export interface MarketFactorsData {
   factors: MarketFactor[];
 }
+
+// IV Score data point
+export interface IVScoreDataPoint {
+  timestamp: string;
+  averageIVScore: number;
+  closePrice: number;
+}

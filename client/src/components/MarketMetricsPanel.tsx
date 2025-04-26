@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { MarketMetricsData, SectorPerformance, IndianMarketIndex } from "@/types";
+import { MarketMetricsData, IndianMarketIndex } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface MarketMetricsPanelProps {
@@ -26,22 +26,11 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-background">
-          <Skeleton className="h-5 w-32 mb-3" />
-          <div className="space-y-2">
-            {Array(6).fill(0).map((_, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-16" />
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     );
   }
 
-  const { indices, indianIndices, sectorPerformance, niftyPCR } = data;
+  const { indices, indianIndices } = data;
   
   // Helper function to get color based on percentage change
   const getChangeColor = (change: number) => {
@@ -61,13 +50,6 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
   const getBarColor = (change: number) => {
     if (change > 0) return 'dark:bg-[#00FF95] bg-[#00C853]';
     if (change < 0) return 'dark:bg-[#FF4F4F] bg-destructive';
-    return 'bg-primary';
-  };
-  
-  // Helper function to get dot color for sector performance
-  const getSectorDotColor = (sector: SectorPerformance) => {
-    if (sector.change > 0.5) return 'dark:bg-[#00FF95] bg-[#00C853]';
-    if (sector.change < -0.5) return 'dark:bg-[#FF4F4F] bg-destructive';
     return 'bg-primary';
   };
 
@@ -100,8 +82,6 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
                 </div>
               </div>
             ))}
-            
-            {/* Removed Nifty PCR as requested - now only shown in SentimentScorePanel */}
           </TabsContent>
           
           <TabsContent value="global" className="pt-4">
@@ -125,24 +105,6 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
             ))}
           </TabsContent>
         </Tabs>
-      </div>
-      
-      <div className="p-4 border-t border-background">
-        <h4 className="text-sm font-medium mb-3">Sector Performance</h4>
-        
-        <div className="space-y-2">
-          {sectorPerformance.map((sector, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className={`w-2 h-2 rounded-full ${getSectorDotColor(sector)}`}></div>
-                <span className="text-sm ml-2">{sector.name}</span>
-              </div>
-              <span className={`text-xs ${getChangeColor(sector.change)}`}>
-                {sector.change > 0 ? '+' : ''}{sector.change}%
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

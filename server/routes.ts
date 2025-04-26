@@ -5,12 +5,20 @@ import { storage } from "./storage";
 import * as marketDataService from "./services/marketData";
 import * as newsScraperService from "./services/newsScraper";
 import * as sentimentAnalyzerService from "./services/sentimentAnalyzer";
+import { zerodhaScraper } from "./services/zerodhaScraper";
 import { TimeFrameType } from "./services/marketData";
 import { log } from "./vite";
+import { Router } from 'express';
+import { Pool } from 'pg';
+import { keyEvents, indianMarketIndices, niftyPCR } from '../shared/schema';
+import moneycontrolScraperRoutes from './routes/moneycontrolScraper';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API prefix
   const apiPrefix = "/api";
+
+  // Register MoneyControl scraper routes
+  app.use(`${apiPrefix}/moneycontrol`, moneycontrolScraperRoutes);
 
   // Get current sentiment data
   app.get(`${apiPrefix}/sentiment/current`, async (req, res) => {
@@ -80,6 +88,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get economic calendar data
+  app.get(`${apiPrefix}/economic-calendar`, async (req, res) => {
+    try {
+      const calendarData = await zerodhaScraper.scrapeEconomicCalendar();
+      return res.json(calendarData);
+    } catch (error) {
+      console.error("Error fetching economic calendar:", error);
+      return res.status(500).json({ error: "Failed to fetch economic calendar data" });
+    }
+  });
+
   // Update market data (this would typically be called by a scheduled job)
   app.post(`${apiPrefix}/update-market-data`, async (req, res) => {
     try {
@@ -103,6 +122,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ error: "Failed to update market data" });
     }
   });
+
+  const router = Router();
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  // Key Market Events
+  router.get('/api/key-events', async (req, res) => {
+    try {
+      const result = await pool.query(
+        'SELECT * FROM key_events ORDER BY timestamp DESC LIMIT 10'
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching key events:', error);
+      res.status(500).json({ error: 'Failed to fetch key events' });
+    }
+  });
+
+  // India VIX Data
+  router.get('/api/india-vix', async (req, res) => {
+    try {
+      const result = await pool.query(
+        'SELECT * FROM indian_market_indices WHERE name = $1 ORDER BY timestamp DESC LIMIT 1',
+        ['India VIX']
+      );
+      res.json(result.rows[0] || null);
+    } catch (error) {
+      console.error('Error fetching India VIX data:', error);
+      res.status(500).json({ error: 'Failed to fetch India VIX data' });
+    }
+  });
+
+  // Nifty PCR Data
+  router.get('/api/nifty-pcr', async (req, res) => {
+    try {
+      const result = await pool.query(
+        'SELECT * FROM nifty_pcr ORDER BY timestamp DESC LIMIT 1'
+      );
+      res.json(result.rows[0] || null);
+    } catch (error) {
+      console.error('Error fetching Nifty PCR data:', error);
+      res.status(500).json({ error: 'Failed to fetch Nifty PCR data' });
+    }
+  });
+
+  app.use(router);
 
   const httpServer = createServer(app);
   

@@ -2,6 +2,7 @@ import { db } from "@db";
 import * as schema from "@shared/schema";
 import { eq, desc, lte, gte, and } from "drizzle-orm";
 import { TimeFrameType, getTimeFrameDate } from "./services/marketData";
+import { zerodhaScraper } from "./services/zerodhaScraper";
 
 // Fetch current sentiment data
 export async function getCurrentSentiment() {
@@ -55,11 +56,10 @@ export async function getHistoricalSentiment(timeFrame: TimeFrameType) {
 
 // Get news items based on timeframe
 export async function getNewsItems(timeFrame: TimeFrameType) {
-  const startDate = getTimeFrameDate(timeFrame);
-  
+  // Remove timeframe filtering to get all news items
   const newsItems = await db.select().from(schema.newsItems)
-    .where(gte(schema.newsItems.timestamp, startDate))
-    .orderBy(desc(schema.newsItems.timestamp));
+    .orderBy(desc(schema.newsItems.timestamp))
+    .limit(50); // Add a reasonable limit
   
   return newsItems.map(item => ({
     id: item.id,
@@ -207,6 +207,18 @@ export async function updateMarketData(marketData: any) {
     }
   }
   
+  // Update Indian market indices
+  if (marketData.indianIndices) {
+    for (const index of marketData.indianIndices) {
+      await db.insert(schema.indianMarketIndices).values({
+        name: index.name,
+        value: index.value,
+        change: index.change,
+        timestamp: new Date()
+      });
+    }
+  }
+  
   // Update sector performance
   if (marketData.sectors) {
     for (const sector of marketData.sectors) {
@@ -295,20 +307,58 @@ export async function updateSentiment(sentimentData: any) {
 export async function getUpcomingEvents() {
   const now = new Date();
   
-  const events = await db.select().from(schema.upcomingEvents)
-    .where(gte(schema.upcomingEvents.eventDate, now))
-    .orderBy(schema.upcomingEvents.eventDate)
-    .limit(10);
-  
-  return events.map(event => ({
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    eventDate: event.eventDate.toISOString(),
-    importance: event.importance,
-    type: event.type,
-    impact: event.impact
-  }));
+  try {
+    // Get database events
+    const dbEvents = await db.select().from(schema.upcomingEvents)
+      .where(gte(schema.upcomingEvents.eventDate, now))
+      .orderBy(schema.upcomingEvents.eventDate)
+      .limit(10);
+    
+    console.log('Database events:', dbEvents);
+    
+    // Get economic calendar events
+    const economicEvents = await zerodhaScraper.scrapeEconomicCalendar();
+    console.log('Economic events:', economicEvents);
+    
+    // Combine and format all events
+    const formattedDbEvents = dbEvents.map(event => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      eventDate: event.eventDate.toISOString(),
+      importance: event.importance,
+      type: event.type,
+      impact: event.impact,
+      source: 'internal'
+    }));
+    
+    const formattedEconomicEvents = economicEvents.map(event => {
+      // Convert date string to ISO format
+      const eventDate = new Date(event.date);
+      return {
+        id: `economic-${event.date}-${event.event}`,
+        title: event.event,
+        description: `Previous: ${event.previous} ${event.unit}, Actual: ${event.actual} ${event.unit}`,
+        eventDate: eventDate.toISOString(),
+        importance: event.importance,
+        type: 'economic',
+        impact: event.importance.toLowerCase(),
+        source: 'zerodha'
+      };
+    });
+    
+    console.log('Formatted database events:', formattedDbEvents);
+    console.log('Formatted economic events:', formattedEconomicEvents);
+    
+    // Combine and sort all events by date
+    const allEvents = [...formattedDbEvents, ...formattedEconomicEvents];
+    allEvents.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+    
+    return allEvents;
+  } catch (error) {
+    console.error('Error in getUpcomingEvents:', error);
+    throw error;
+  }
 }
 
 export const storage = {
