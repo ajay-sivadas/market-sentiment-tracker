@@ -343,12 +343,32 @@ export class MoneyControlScraper {
           name: index.index,
           value: index.value,
           change: index.changePercent
-        }))
+        })),
+        niftyPCR: {
+          value: 1.25, // Default value, will be updated by another service
+          change: 0.15,
+          putVolume: 4528000,
+          callVolume: 3622400
+        }
       };
+      
+      // Find India VIX data
+      const indiaVIX = indianIndices.find(index => index.index.includes('INDIA VIX'));
+      if (indiaVIX) {
+        // Add India VIX to indianIndices if not already present
+        if (!formattedData.indianIndices.some(index => index.name.includes('INDIA VIX'))) {
+          formattedData.indianIndices.push({
+            name: 'INDIA VIX',
+            value: indiaVIX.value,
+            change: indiaVIX.changePercent
+          });
+        }
+      }
       
       logger.info('Formatted data for update', { 
         globalIndicesCount: formattedData.indices.length,
         indianIndicesCount: formattedData.indianIndices.length,
+        hasIndiaVIX: formattedData.indianIndices.some(index => index.name.includes('INDIA VIX')),
         sampleData: {
           global: formattedData.indices.slice(0, 2),
           indian: formattedData.indianIndices.slice(0, 2)

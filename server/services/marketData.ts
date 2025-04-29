@@ -66,6 +66,43 @@ export async function fetchLatestMarketData() {
       }
     ];
     
+    // Indian market indices data
+    const indianIndices = [
+      {
+        name: "NIFTY 50",
+        value: 21845.50 + generateChange(21845.50),
+        change: generateChange(0.9, 0.5)
+      },
+      {
+        name: "SENSEX",
+        value: 71532.25 + generateChange(71532.25),
+        change: generateChange(0.8, 0.5)
+      },
+      {
+        name: "NIFTY BANK",
+        value: 46735.20 + generateChange(46735.20),
+        change: generateChange(1.2, 0.6)
+      },
+      {
+        name: "NIFTY IT",
+        value: 32567.80 + generateChange(32567.80),
+        change: generateChange(1.5, 0.7)
+      },
+      {
+        name: "INDIA VIX",
+        value: 14.85 + generateChange(14.85, 0.1),
+        change: generateChange(-3.2, 1.0)
+      }
+    ];
+    
+    // Nifty PCR data
+    const niftyPCR = {
+      value: 1.25 + generateChange(1.25, 0.05),
+      change: generateChange(0.15, 0.1),
+      putVolume: 4528000 + Math.floor(generateChange(4528000, 0.1)),
+      callVolume: 3622400 + Math.floor(generateChange(3622400, 0.1))
+    };
+    
     // Sector performance data
     const sectors = [
       {
@@ -170,6 +207,8 @@ export async function fetchLatestMarketData() {
     
     return {
       indices,
+      indianIndices,
+      niftyPCR,
       sectors,
       factors
     };

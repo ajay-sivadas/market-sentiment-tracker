@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { economicCalendarService } from '../services/economicCalendarService';
 
 interface EconomicEvent {
   date: string;
@@ -54,11 +55,9 @@ const EconomicCalendar: React.FC = () => {
   const [country, setCountry] = useState<string>('all');
 
   useEffect(() => {
-    // TODO: Replace with actual API call to Zerodha's economic calendar
     const fetchEvents = async () => {
       try {
-        const response = await fetch('YOUR_ZERODHA_API_ENDPOINT');
-        const data = await response.json();
+        const data = await economicCalendarService.getEconomicEvents();
         setEvents(data);
       } catch (error) {
         console.error('Error fetching economic calendar:', error);

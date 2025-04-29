@@ -8,7 +8,7 @@ MarketMood is a web-based platform that provides real-time sentiment analysis of
 
 ### 1. Real-time Sentiment Analysis
 
-- Numerical sentiment score (0-100) calculated from multiple market indicators
+- Numerical sentiment score (0-100) calculated from in-house indicator
 - Real-time updates of market sentiment
 - Visual representation of sentiment trends
 - Customizable timeframes for analysis
@@ -35,6 +35,7 @@ MarketMood is a web-based platform that provides real-time sentiment analysis of
 - Historical data export
 - News filtering and categorization
 - User preferences and settings
+- Upcoming market events
 
 ## Technical Architecture
 
@@ -48,7 +49,7 @@ MarketMood is a web-based platform that provides real-time sentiment analysis of
 ### Backend
 
 - Node.js/Express.js server
-- MongoDB for data storage
+- Postgresql for data storage
 - Redis for caching
 - WebSocket for real-time updates
 
@@ -103,10 +104,19 @@ MarketMood is a web-based platform that provides real-time sentiment analysis of
    - Historical news archive
 
 3. **Analytics Panel**
+
    - Interactive charts
    - Customizable timeframes
    - Export functionality
    - Comparison tools
+
+4. **Upcoming Events Panel**
+   - Calendar view of market events
+   - Event categorization (Earnings, Economic Data, Fed Meetings, etc.)
+   - Event impact indicators
+   - Custom event reminders
+   - Integration with market sentiment analysis
+   - Historical event performance tracking
 
 ## Development Roadmap
 

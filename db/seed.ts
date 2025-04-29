@@ -8,7 +8,7 @@ async function seed() {
       {
         score: 67.8,
         change: 2.4,
-        marketStatus: "Bullish",
+        marketStatus: "High",
         trendDirection: "Upward",
         volatility: "Medium",
         confidenceLabel: "High",

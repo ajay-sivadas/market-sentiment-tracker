@@ -251,6 +251,17 @@ export async function updateMarketData(marketData: any) {
       }
     }
   }
+
+  // Update Nifty PCR data
+  if (marketData.niftyPCR) {
+    await db.insert(schema.niftyPCR).values({
+      value: marketData.niftyPCR.value,
+      change: marketData.niftyPCR.change,
+      putVolume: marketData.niftyPCR.putVolume,
+      callVolume: marketData.niftyPCR.callVolume,
+      timestamp: new Date()
+    });
+  }
 }
 
 // Add news items

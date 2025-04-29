@@ -8,7 +8,6 @@ import SentimentScorePanel from "@/components/SentimentScorePanel";
 import SentimentChartPanel from "@/components/SentimentChartPanel";
 import NewsPanel from "@/components/NewsPanel";
 import MarketMetricsPanel from "@/components/MarketMetricsPanel";
-import MarketFactorsPanel from "@/components/MarketFactorsPanel";
 import UpcomingEventsPanel from "@/components/UpcomingEventsPanel";
 import Footer from "@/components/Footer";
 import { 
@@ -16,7 +15,6 @@ import {
   SentimentData, 
   HistoricalSentimentData, 
   NewsItemData, 
-  MarketFactorsData,
   IVScoreDataPoint
 } from "@/types";
 import { parseIVScoreCSV } from "@/utils/csvParser";
@@ -67,11 +65,6 @@ export default function Dashboard() {
 
   // Use our custom hook for market metrics
   const { data: marketMetrics, isLoading: loadingMetrics } = useMarketMetrics();
-
-  // Fetch market factors
-  const { data: marketFactors, isLoading: loadingFactors } = useQuery<MarketFactorsData>({
-    queryKey: ["/api/market-factors"],
-  });
 
   // Parse IV score data
   useEffect(() => {
@@ -131,11 +124,6 @@ export default function Dashboard() {
             isLoading={loadingMetrics} 
           />
         </div>
-        
-        <MarketFactorsPanel 
-          data={marketFactors} 
-          isLoading={loadingFactors} 
-        />
       </main>
       
       <Footer />

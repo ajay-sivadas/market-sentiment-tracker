@@ -7,7 +7,7 @@ async function seed() {
     const [sentimentScore] = await db.insert(schema.sentimentScores).values({
       score: "65.5",
       change: "2.3",
-      marketStatus: "Bullish",
+      marketStatus: "High",
       trendDirection: "Upward",
       volatility: "Moderate",
       confidenceLabel: "High",
