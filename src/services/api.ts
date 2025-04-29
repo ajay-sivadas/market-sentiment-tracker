@@ -16,16 +16,6 @@ api.interceptors.response.use(
   }
 );
 
-export const getUpcomingEvents = async () => {
-  try {
-    const response = await api.get('/upcoming-events');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching upcoming events:', error);
-    throw error;
-  }
-};
-
 export const getSentimentData = async () => {
   try {
     const response = await api.get('/sentiment/current');
@@ -52,16 +42,6 @@ export const getNews = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching news:', error);
-    throw error;
-  }
-};
-
-export const getKeyEvents = async () => {
-  try {
-    const response = await api.get('/key-events');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching key events:', error);
     throw error;
   }
 };

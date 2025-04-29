@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { MarketMetricsData, IndianMarketIndex } from "@/types";
+import { MarketMetricsData} from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface MarketMetricsPanelProps {
@@ -10,8 +10,8 @@ interface MarketMetricsPanelProps {
 export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPanelProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-card rounded-lg shadow-sm md:col-span-1">
-        <div className="p-4 border-b border-background">
+      <div className="bg-card rounded-lg shadow-sm md:col-span-1" style={{height: 410}}>
+        <div className="p-4 border-b ">
           <h3 className="text-lg font-medium">Market Metrics</h3>
           <Skeleton className="h-8 w-48 mt-2" />
         </div>
@@ -54,8 +54,8 @@ export default function MarketMetricsPanel({ data, isLoading }: MarketMetricsPan
   };
 
   return (
-    <div className="bg-card rounded-lg shadow-sm md:col-span-1">
-      <div className="p-4 border-b border-background">
+    <div className="bg-card rounded-lg shadow-sm md:col-span-1" style={{height: '410px !important'}}>
+      <div className="p-4 border-b border-background" >
         <h3 className="text-lg font-medium">Market Metrics</h3>
         <Tabs defaultValue="indian" className="mt-2">
           <TabsList className="grid w-48 grid-cols-2">

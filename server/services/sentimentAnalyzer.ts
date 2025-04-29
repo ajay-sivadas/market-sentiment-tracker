@@ -62,7 +62,7 @@ export async function analyzeSentiment(marketData: any, newsData: any[]) {
     let marketStatus, trendDirection, volatility, confidenceLabel, confidenceValue;
     
     if (baseScore >= 70) {
-      marketStatus = "Bullish";
+      marketStatus = "High";
     } else if (baseScore >= 45) {
       marketStatus = "Neutral";
     } else {

@@ -44,19 +44,40 @@ export default function SentimentScorePanel({
     return (
       <div className="bg-card rounded-lg shadow-sm p-6 md:col-span-1">
         <h3 className="text-lg font-medium mb-4">Current Sentiment</h3>
-        <div className="sentiment-score mb-6 flex flex-col items-center">
-          <Skeleton className="h-10 w-24 mb-2" />
-          <Skeleton className="h-6 w-32" />
+        
+        {/* Current IV Score Skeleton */}
+        <div className="mb-6 flex flex-col items-center bg-muted/50 p-4 rounded-lg">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-8 w-32" />
         </div>
+        
+        {/* Sentiment Score Skeleton */}
+        <div className="sentiment-score mb-6 flex flex-col items-center">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-10 w-40 mb-2" />
+          <div className="flex items-center mt-2">
+            <Skeleton className="h-5 w-5 rounded-full mr-2" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-24 ml-2" />
+          </div>
+        </div>
+        
+        {/* Sentiment Gauge Skeleton */}
         <div className="mb-6">
           <Skeleton className="h-4 w-full mb-2" />
-          <Skeleton className="h-4 w-full" />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-12" />
+          </div>
         </div>
+        
+        {/* Market Status Skeletons */}
         <div className="space-y-4">
           {Array(4).fill(0).map((_, index) => (
             <div key={index} className="flex justify-between items-center pb-2 border-b border-background">
               <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-6 w-32" />
             </div>
           ))}
         </div>
@@ -101,7 +122,7 @@ export default function SentimentScorePanel({
   // Add dummy market metrics if none provided
   const dummyMarketMetrics = {
     niftyPCR: {
-      value: 1.25,
+      value: 0.705,
       change: 0.15,
       putVolume: 1250000,
       callVolume: 1000000,
@@ -110,8 +131,8 @@ export default function SentimentScorePanel({
     indianIndices: [
       {
         name: "India VIX",
-        value: 15.75,
-        change: -1.25
+        value: 17.16,
+        change: 5.58
       }
     ]
   };
@@ -120,8 +141,8 @@ export default function SentimentScorePanel({
   const displayMarketMetrics = marketMetrics || dummyMarketMetrics;
 
   // Ensure all required properties exist
-  const niftyPCR = displayMarketMetrics.niftyPCR || dummyMarketMetrics.niftyPCR;
-  const indianIndices = displayMarketMetrics.indianIndices || dummyMarketMetrics.indianIndices;
+  const niftyPCR = dummyMarketMetrics.niftyPCR;
+  const indianIndices = dummyMarketMetrics.indianIndices;
 
   return (
     <div className="bg-card rounded-lg shadow-sm p-6 md:col-span-1">
@@ -199,26 +220,9 @@ export default function SentimentScorePanel({
         
         {/* Nifty PCR Section */}
         <div className="mb-6">
-          <h5 className="text-sm font-medium mb-2">Nifty PCR</h5>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-sm">Put-Call Ratio</span>
-            <div className={`flex items-center ${getChangeColor(niftyPCR.change)}`}>
-              <span className="font-mono font-medium">{niftyPCR.value.toFixed(2)}</span>
-              <span className="ml-2 text-xs">
-                {niftyPCR.change > 0 ? '+' : ''}{niftyPCR.change}
-              </span>
-            </div>
-          </div>
-          
-          <div className="flex justify-between text-xs mt-4">
-            <div>
-              <span className="block text-muted-foreground">Puts Volume</span>
-              <span className="font-mono">{niftyPCR.putVolume.toLocaleString()}</span>
-            </div>
-            <div className="text-right">
-              <span className="block text-muted-foreground">Calls Volume</span>
-              <span className="font-mono">{niftyPCR.callVolume.toLocaleString()}</span>
-            </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">NIFTY PCR</span>
+            <span className="font-mono">{niftyPCR.value.toFixed(2)}</span>
           </div>
         </div>
 
@@ -230,7 +234,6 @@ export default function SentimentScorePanel({
               return (
                 <div key={index.name} className="space-y-2">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm">{index.name}</span>
                     <div className={`flex items-center ${getChangeColor(index.change)}`}>
                       <span className="font-mono">{index.value.toLocaleString()}</span>
                       <span className="ml-2 text-xs">{index.change > 0 ? '+' : ''}{index.change}%</span>

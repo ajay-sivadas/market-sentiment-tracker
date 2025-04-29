@@ -95,24 +95,6 @@ export interface MarketMetricsData {
   niftyPCR?: NiftyPCRData;
 }
 
-// Factor element data
-export interface FactorElement {
-  name: string;
-  status: string;
-}
-
-// Market factor data
-export interface MarketFactor {
-  name: string;
-  score: number;
-  elements: FactorElement[];
-}
-
-// Market factors data
-export interface MarketFactorsData {
-  factors: MarketFactor[];
-}
-
 // IV Score data point
 export interface IVScoreDataPoint {
   timestamp: string;
